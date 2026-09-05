@@ -33,6 +33,33 @@ body.ios-fullscreen {
   display: none !important;
 }
 
+/* Hoş Geldin Bildirim Kartı */
+.welcome-toast {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, rgba(26, 42, 26, 0.95), rgba(18, 30, 18, 0.95));
+  border: 1.5px solid #2ecc71;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+  padding: 10px 22px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10001;
+  animation: toastPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes toastPop {
+  0% { transform: translate(-50%, -40px); opacity: 0; }
+  100% { transform: translate(-50%, 0); opacity: 1; }
+}
+
+.welcome-icon { font-size: 24px; }
+.welcome-text h4 { font-size: 13px; color: #2ecc71; margin-bottom: 2px; }
+.welcome-text p { font-size: 11px; color: #ddd; }
+
 /* Giriş Menüsü */
 #device-modal {
   position: fixed;
@@ -54,12 +81,26 @@ body.ios-fullscreen {
   text-align: center;
   box-shadow: 0 12px 40px rgba(0,0,0,0.9);
   max-width: 92%;
-  width: 350px;
+  width: 360px;
   border: 1px solid #2f3e2f;
+  position: relative;
+}
+
+.version-header {
+  display: inline-block;
+  background: rgba(52, 152, 219, 0.15);
+  color: #3498db;
+  border: 1px solid rgba(52, 152, 219, 0.4);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
 }
 
 .modal-box h2 {
-  font-size: 24px;
+  font-size: 25px;
   color: #f1c40f;
   margin-bottom: 4px;
 }
@@ -161,6 +202,37 @@ body.ios-fullscreen {
 .pc-btn { background: #2980b9; }
 .android-btn { background: #27ae60; }
 .ios-btn { background: #34495e; border: 1px solid #7f8c8d; }
+
+/* Oyunu Bitirenlerin Rozet Kutusu */
+.completed-box {
+  margin-top: 14px;
+  background: rgba(241, 196, 15, 0.1);
+  border: 1.5px dashed #f1c40f;
+  padding: 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  color: #f1c40f;
+  line-height: 1.4;
+}
+
+.reset-save-btn {
+  margin-top: 6px;
+  background: #c0392b;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.modal-footer-version {
+  margin-top: 12px;
+  font-size: 10px;
+  color: #666;
+  font-weight: 600;
+}
 
 /* Sağ Üst Panel */
 #top-right-controls {
@@ -294,7 +366,7 @@ body.ios-fullscreen {
 }
 
 canvas#gameCanvas {
-  background: #2a4f1a;
+  background: #264817;
   display: block;
   width: 100vw;
   height: 100vh;
