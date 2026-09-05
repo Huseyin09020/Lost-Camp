@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <!-- iPhone Safari Tam Ekran Meta Etiketleri -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>2D Hayatta Kalma</title>
+  <title>2D Hayatta Kalma - Kızını Kurtar</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,38 +19,56 @@
     </div>
   </div>
 
-  <!-- Giriş Menüsü: İsim + 3 Cihaz Seçeneği -->
+  <!-- Giriş Menüsü -->
   <div id="device-modal">
     <div class="modal-box">
-      <h2>2D Hayatta Kalma</h2>
-      <div class="version-tag">v1.4.0 (Cihaz Özel Optimizasyon)</div>
+      <h2>Kızını Kurtar!</h2>
+      <div class="version-tag">🎯 10 Gün Dayan ve Zaman Kapısını Kır!</div>
 
       <div class="input-group">
-        <label for="player-name-input">Karakterinin İsmi:</label>
+        <label for="player-name-input">Kahramanın Adı:</label>
         <input type="text" id="player-name-input" placeholder="İsmini Yaz..." maxlength="12" value="Savaşçı">
+      </div>
+
+      <!-- Cinsiyet Seçimi -->
+      <div class="input-group">
+        <label>Karakterini Seç:</label>
+        <div class="gender-selector">
+          <button type="button" id="gender-male" class="gender-btn active-gender">👨 Erkek</button>
+          <button type="button" id="gender-female" class="gender-btn">👩 Kadın</button>
+        </div>
       </div>
 
       <p>Cihazını Seç ve Başla:</p>
       <div class="modal-buttons">
-        <button id="btn-pc" class="choice-btn pc-btn">💻 Bilgisayar (Klavye & Mouse)</button>
-        <button id="btn-android" class="choice-btn android-btn">🤖 Android (Tam Ekran API)</button>
-        <button id="btn-ios" class="choice-btn ios-btn">🍏 iPhone (Safari WebApp Modu)</button>
+        <button type="button" id="btn-pc" class="choice-btn pc-btn">💻 Bilgisayar (Klavye & Fare)</button>
+        <button type="button" id="btn-android" class="choice-btn android-btn">🤖 Android</button>
+        <button type="button" id="btn-ios" class="choice-btn ios-btn">🍏 iPhone (Safari)</button>
       </div>
     </div>
   </div>
 
   <!-- Ana Oyun Alanı -->
-  <div id="game-container" class="hidden">
-    <!-- Sağ Üst Panel: Alet Değiştirme ve Tam Ekran -->
+  <div id="game-container" style="display: none;">
+    <!-- Sağ Üst Panel -->
     <div id="top-right-controls">
-      <button id="btn-tool-cycle" class="hud-btn" title="Aleti Değiştir">⚔️ Kılıç</button>
-      <button id="btn-fullscreen" class="hud-btn" title="Tam Ekran">⛶</button>
+      <button type="button" id="btn-tool-cycle" class="hud-btn" title="Aleti Değiştir">⚔️ Kılıç</button>
+      <button type="button" id="btn-fullscreen" class="hud-btn" title="Tam Ekran">⛶</button>
     </div>
 
-    <!-- Üst Skor / Durum Barı -->
+    <!-- Başarım Bildirimi -->
+    <div id="achievement-banner" class="hidden">
+      <div class="ach-icon">🏆</div>
+      <div class="ach-content">
+        <div class="ach-title">Başarım Tamamlandı!</div>
+        <div class="ach-desc" id="ach-desc">Hayat Adamı</div>
+      </div>
+    </div>
+
+    <!-- Üst Arayüz Barı -->
     <div id="ui-bar">
       <div class="stat-box">❤️ <span id="health-val">100</span></div>
-      <div class="stat-box">📅 <span id="day-val">1. Gün</span></div>
+      <div class="stat-box">📅 <span id="day-val">1/10 Gün</span></div>
       <div class="stat-box">⏳ <span id="time-val">Gündüz (0:30)</span></div>
       <div class="stat-box">🌲 <span id="wood-val">0</span></div>
       <div class="stat-box">🪨 <span id="stone-val">0</span></div>
@@ -60,27 +77,25 @@
     <!-- Mini Harita -->
     <canvas id="minimapCanvas" width="110" height="82"></canvas>
 
-    <!-- Oyun Tuvali -->
-    <canvas id="gameCanvas" width="800" height="500"></canvas>
+    <!-- Ana Oyun Tuvali -->
+    <canvas id="gameCanvas"></canvas>
 
     <!-- Bilgisayar Kontrol İpucu -->
     <div id="pc-controls" class="hint-text">
-      <b>W,A,S,D:</b> Hareket | <b>Space/Tık:</b> Vur | <b>Q veya 1,2,3:</b> Alet Seç | <b>B:</b> Üs (10O, 5T)
+      <b>W,A,S,D:</b> Git | <b>Boşluk/Tık:</b> Vur | <b>Q / 1,2,3:</b> Alet Seç | <b>B:</b> Üs (10O, 5T)
     </div>
 
-    <!-- Mobil Arayüz Katmanı -->
+    <!-- Mobil Dokunmatik Katman -->
     <div id="mobile-overlay" class="hidden">
-      <!-- Sol Alt: Dokunmatik Joystick -->
       <div id="joystick-zone">
         <div id="joystick-base">
           <div id="joystick-knob"></div>
         </div>
       </div>
 
-      <!-- Sağ Alt: 2 Büyük Buton -->
       <div id="action-zone">
-        <button id="btn-build" class="touch-action-btn build-btn">🏠</button>
-        <button id="btn-attack" class="touch-action-btn attack-btn">⚔️</button>
+        <button type="button" id="btn-build" class="touch-action-btn build-btn">🏠</button>
+        <button type="button" id="btn-attack" class="touch-action-btn attack-btn">⚔️</button>
       </div>
     </div>
   </div>
