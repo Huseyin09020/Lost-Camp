@@ -19,11 +19,21 @@
     </div>
   </div>
 
+  <!-- Açılış Hoş Geldin Bildirimi -->
+  <div id="welcome-toast" class="welcome-toast hidden">
+    <div class="welcome-icon">✨</div>
+    <div class="welcome-text">
+      <h4>Hoş Geldin Savaşçı!</h4>
+      <p>10 Günlük Zorlu Göreve Hazır Mısın?</p>
+    </div>
+  </div>
+
   <!-- Giriş Menüsü -->
   <div id="device-modal">
     <div class="modal-box">
+      <div class="version-header">v2.0.0 (Bölüm 1: Kaçış)</div>
       <h2>Kızını Kurtar!</h2>
-      <div class="version-tag">🎯 10 Gün Dayan ve Zaman Kapısını Kır!</div>
+      <div class="version-tag">🎯 Hedef: 10 Gün Dayan ve Zaman Kapısını Kır!</div>
 
       <div class="input-group">
         <label for="player-name-input">Kahramanın Adı:</label>
@@ -45,6 +55,15 @@
         <button type="button" id="btn-android" class="choice-btn android-btn">🤖 Android</button>
         <button type="button" id="btn-ios" class="choice-btn ios-btn">🍏 iPhone (Safari)</button>
       </div>
+
+      <!-- Kayıtlı Bitirme Durumu Kutusu (Eğer Bitirmişse Çıkar) -->
+      <div id="completed-notice" class="completed-box hidden">
+        🏆 <b>Tebrikler! Oyunu Zaten Bitirdiniz.</b><br>
+        10. günde kızınızı kurtardınız. 2. Harita güncellemesi bekleniyor!<br>
+        <button type="button" id="btn-reset-save" class="reset-save-btn">Kayıt Sıfırla ve Baştan Oyna</button>
+      </div>
+
+      <div class="modal-footer-version">Yapım Sürümü: v2.0.0 • 2. Harita Pek Yakında</div>
     </div>
   </div>
 
@@ -69,7 +88,7 @@
     <div id="ui-bar">
       <div class="stat-box">❤️ <span id="health-val">100</span></div>
       <div class="stat-box">📅 <span id="day-val">1/10 Gün</span></div>
-      <div class="stat-box">⏳ <span id="time-val">Gündüz (0:30)</span></div>
+      <div class="stat-box">⏳ <span id="time-val">Gündüz (1:00)</span></div>
       <div class="stat-box">🌲 <span id="wood-val">0</span></div>
       <div class="stat-box">🪨 <span id="stone-val">0</span></div>
     </div>
@@ -82,7 +101,7 @@
 
     <!-- Bilgisayar Kontrol İpucu -->
     <div id="pc-controls" class="hint-text">
-      <b>W,A,S,D:</b> Git | <b>Boşluk/Tık:</b> Vur | <b>Q / 1,2,3:</b> Alet Seç | <b>B:</b> Üs (10O, 5T)
+      <b>W,A,S,D:</b> Git | <b>Boşluk/Tık:</b> Vur | <b>Q / 1,2,3:</b> Alet Seç | <b>B:</b> Sığınak Kur / Tamir Et
     </div>
 
     <!-- Mobil Dokunmatik Katman -->
