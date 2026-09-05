@@ -1,7 +1,6 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Ekran Tuvalini Dinamik Olarak Boyutlandır
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -13,7 +12,6 @@ window.addEventListener("resize", resizeCanvas);
 const minimapCanvas = document.getElementById("minimapCanvas");
 const mctx = minimapCanvas.getContext("2d");
 
-// DAHA DA BÜYÜK HARİTA (3600 x 2600)
 const WORLD_WIDTH = 3600;
 const WORLD_HEIGHT = 2600;
 
@@ -31,7 +29,9 @@ const fullscreenBtn = document.getElementById("btn-fullscreen");
 const toolCycleBtn = document.getElementById("btn-tool-cycle");
 const playerNameInput = document.getElementById("player-name-input");
 
-// Ses Motoru
+// ==========================================
+// GELİŞMİŞ VE GERÇEKÇİ SES MOTORU
+// ==========================================
 let audioCtx = null;
 function initAudio() {
   if (!audioCtx) {
@@ -42,87 +42,146 @@ function initAudio() {
   }
 }
 
+// Beyaz Gürültü Üretici (Odun kıymığı ve taş tozu efekti için)
+function createNoiseBuffer() {
+  if (!audioCtx) return null;
+  const bufferSize = audioCtx.sampleRate * 0.1;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  return buffer;
+}
+
 const SFX = {
-  slash: () => {
-    if (!audioCtx) return;
-    try {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.08);
-      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.08);
-    } catch(e) {}
-  },
+  // 1. Ağaç / Odun Kırma (Tok Kütük Darbesi + Çatlama)
   chopWood: () => {
     if (!audioCtx) return;
     try {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "square";
-      osc.frequency.setValueAtTime(120, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.09);
-      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.09);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.09);
-    } catch(e) {}
-  },
-  mineRock: () => {
-    if (!audioCtx) return;
-    try {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(820, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(260, audioCtx.currentTime + 0.11);
-      gain.gain.setValueAtTime(0.16, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.11);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.11);
-    } catch(e) {}
-  },
-  hitMonster: () => {
-    if (!audioCtx) return;
-    try {
+      const now = audioCtx.currentTime;
+
+      // Tok kütük darbe osilatörü
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "triangle";
-      osc.frequency.setValueAtTime(260, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.12);
-      gain.gain.setValueAtTime(0.24, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+      osc.frequency.setValueAtTime(160, now);
+      osc.frequency.exponentialRampToValueAtTime(45, now + 0.08);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.12);
+      osc.start(now);
+      osc.stop(now + 0.08);
+
+      // Odun lifi çatlama gürültüsü (Noise)
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = createNoiseBuffer();
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(800, now);
+      const noiseGain = audioCtx.createGain();
+      noiseGain.gain.setValueAtTime(0.18, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
+
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(audioCtx.destination);
+      noise.start(now);
     } catch(e) {}
   },
-  pickup: () => {
+
+  // 2. Taş / Maden Kırma (Tiz Metal Çınlaması + Çekiç Tokluğu)
+  mineRock: () => {
     if (!audioCtx) return;
     try {
+      const now = audioCtx.currentTime;
+
+      // Tiz metalik çınlama
+      const oscHigh = audioCtx.createOscillator();
+      const gainHigh = audioCtx.createGain();
+      oscHigh.type = "sine";
+      oscHigh.frequency.setValueAtTime(1400, now);
+      oscHigh.frequency.exponentialRampToValueAtTime(650, now + 0.12);
+      gainHigh.gain.setValueAtTime(0.22, now);
+      gainHigh.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      oscHigh.connect(gainHigh);
+      gainHigh.connect(audioCtx.destination);
+      oscHigh.start(now);
+      oscHigh.stop(now + 0.12);
+
+      // Tok kaya kırılma gövdesi
+      const oscLow = audioCtx.createOscillator();
+      const gainLow = audioCtx.createGain();
+      oscLow.type = "square";
+      oscLow.frequency.setValueAtTime(240, now);
+      oscLow.frequency.exponentialRampToValueAtTime(80, now + 0.09);
+      gainLow.gain.setValueAtTime(0.14, now);
+      gainLow.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+      oscLow.connect(gainLow);
+      gainLow.connect(audioCtx.destination);
+      oscLow.start(now);
+      oscLow.stop(now + 0.09);
+    } catch(e) {}
+  },
+
+  // Kılıç savurma
+  slash: () => {
+    if (!audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(620, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(980, audioCtx.currentTime + 0.09);
-      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.09);
+      osc.frequency.setValueAtTime(520, now);
+      osc.frequency.exponentialRampToValueAtTime(140, now + 0.08);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.09);
+      osc.start(now);
+      osc.stop(now + 0.08);
     } catch(e) {}
   },
+
+  // Canavara darbe
+  hitMonster: () => {
+    if (!audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(240, now);
+      osc.frequency.exponentialRampToValueAtTime(50, now + 0.11);
+      gain.gain.setValueAtTime(0.24, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.11);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.11);
+    } catch(e) {}
+  },
+
+  // Toplama sesi
+  pickup: () => {
+    if (!audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(650, now);
+      osc.frequency.exponentialRampToValueAtTime(1050, now + 0.09);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } catch(e) {}
+  },
+
   build: () => {
     if (!audioCtx) return;
     try {
@@ -140,6 +199,7 @@ const SFX = {
       });
     } catch(e) {}
   },
+
   night: () => {
     if (!audioCtx) return;
     try {
@@ -163,7 +223,6 @@ let currentDevice = "pc";
 let gameRunning = false;
 let isDead = false;
 
-// Tam Ekran Kontrolü
 function toggleFullScreen() {
   initAudio();
   if (currentDevice === "ios") {
@@ -186,7 +245,6 @@ fullscreenBtn.addEventListener("touchstart", (e) => {
   toggleFullScreen();
 });
 
-// Aletler
 const TOOLS = [
   { name: "⚔️ Kılıç", btnIcon: "⚔️", monsterDmg: 45, treeDmg: 8, rockDmg: 5 },
   { name: "🪓 Balta", btnIcon: "🪓", monsterDmg: 12, treeDmg: 45, rockDmg: 5 },
@@ -230,6 +288,7 @@ let trees = [];
 let rocks = [];
 let monsters = [];
 let meats = [];
+let groundDecorations = []; // Çimen tutamları ve çiçekler
 let base = null;
 
 const CYCLE_DURATION = 1800;
@@ -237,7 +296,19 @@ let cycleTicks = 0;
 let dayCount = 1;
 let isNight = false;
 
-// CİHAZ SEÇİMİ VE OYUN BAŞLATMA (Hata Korumalı)
+// Zemin Detaylarını Oluştur
+function initGroundDetails() {
+  groundDecorations = [];
+  for (let i = 0; i < 450; i++) {
+    groundDecorations.push({
+      x: Math.random() * (WORLD_WIDTH - 60) + 30,
+      y: Math.random() * (WORLD_HEIGHT - 60) + 30,
+      type: Math.floor(Math.random() * 3), // 0: koyu çim, 1: açık çim, 2: minik çiçek
+      size: Math.random() * 4 + 4
+    });
+  }
+}
+
 function startGame(device) {
   initAudio();
   currentDevice = device;
@@ -245,7 +316,6 @@ function startGame(device) {
   const inputName = playerNameInput.value.trim();
   player.name = inputName.length > 0 ? inputName : "Savaşçı";
 
-  // Menüyü anında gizle ve oyun alanını aç
   deviceModal.style.display = "none";
   deviceModal.classList.add("hidden");
   gameContainer.classList.remove("hidden");
@@ -277,7 +347,6 @@ document.getElementById("btn-pc").addEventListener("click", () => startGame("pc"
 document.getElementById("btn-android").addEventListener("click", () => startGame("android"));
 document.getElementById("btn-ios").addEventListener("click", () => startGame("ios"));
 
-// Klavye Dinleyicisi
 const keys = {};
 window.addEventListener("keydown", (e) => {
   initAudio();
@@ -300,7 +369,6 @@ canvas.addEventListener("mousedown", () => {
   if (!isDead && gameRunning) attackOrGather();
 });
 
-// Mobil Joystick
 function setupMobileControls() {
   const zone = document.getElementById("joystick-zone");
   const knob = document.getElementById("joystick-knob");
@@ -373,7 +441,6 @@ function setupMobileControls() {
   });
 }
 
-// Saldırı ve Kırma
 function attackOrGather() {
   if (player.isAttacking) return;
   player.isAttacking = true;
@@ -484,6 +551,8 @@ function resetGame() {
   dayCount = 1;
   isNight = false;
   isDead = false;
+
+  initGroundDetails();
 
   trees = [];
   rocks = [];
@@ -676,8 +745,53 @@ function updateUI() {
 }
 
 // ==========================================
-// ÇİZİMLER
+// DETAYLI ZEMİN VE ÇİZİMLER
 // ==========================================
+
+// Zemin Dokusu Çizimi (Doğal Çimen & Çiçekler)
+function drawGround() {
+  // Temel zemin rengi
+  ctx.fillStyle = isNight ? "#0e1a0e" : "#2d521c";
+  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
+  // Doğal çimen öbekleri ve kır çiçekleri
+  groundDecorations.forEach(d => {
+    if (d.type === 0) {
+      // Koyu Çimen Tutamı
+      ctx.fillStyle = isNight ? "#091209" : "#224115";
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (d.type === 1) {
+      // Canlı Yeşil Çim Pırıltısı
+      ctx.fillStyle = isNight ? "#122412" : "#3b6827";
+      ctx.beginPath();
+      ctx.ellipse(d.x, d.y, d.size + 2, d.size - 1, Math.PI / 4, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Minik Kır Çiçeği
+      ctx.fillStyle = isNight ? "#4a441e" : "#f1c40f";
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  // Harita Zemin Izgarası
+  ctx.strokeStyle = isNight ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.04)";
+  ctx.lineWidth = 2;
+  for (let x = 0; x < WORLD_WIDTH; x += 140) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_HEIGHT); ctx.stroke();
+  }
+  for (let y = 0; y < WORLD_HEIGHT; y += 140) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke();
+  }
+
+  // Harita Kırmızı Dış Sınırı
+  ctx.strokeStyle = "#c0392b";
+  ctx.lineWidth = 8;
+  ctx.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+}
 
 function drawPlayer(x, y) {
   ctx.save();
@@ -786,19 +900,20 @@ function drawMonster(m) {
   ctx.arc(0, 0, 14, 0, Math.PI * 2);
   ctx.fill();
 
-  // Boynuzlar
   ctx.fillStyle = "#2c0404";
   ctx.beginPath();
   ctx.moveTo(-10, -12); ctx.lineTo(-18, -24); ctx.lineTo(-4, -16); ctx.fill();
   ctx.beginPath();
   ctx.moveTo(10, -12); ctx.lineTo(18, -24); ctx.lineTo(4, -16); ctx.fill();
 
-  // Parlayan Gözler
   ctx.fillStyle = "#f39c12";
   ctx.beginPath();
   ctx.arc(-5, -4, 4, 0, Math.PI * 2);
   ctx.arc(5, -4, 4, 0, Math.PI * 2);
   ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(-4, -5, 2, 2);
+  ctx.fillRect(6, -5, 2, 2);
 
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
@@ -826,7 +941,6 @@ function drawTree(t) {
     ctx.fillRect(px - 20, py - 52, (40 * t.hp) / t.maxHp, 6);
   }
 
-  // Gövde ve Kökler
   ctx.fillStyle = "#4a2c11";
   ctx.beginPath();
   ctx.moveTo(px - 9, py);
@@ -951,21 +1065,8 @@ function render() {
   ctx.save();
   ctx.translate(-camera.x, -camera.y);
 
-  ctx.fillStyle = isNight ? "#0d1a0d" : "#2f561d";
-  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-
-  ctx.strokeStyle = isNight ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.06)";
-  ctx.lineWidth = 2;
-  for (let x = 0; x < WORLD_WIDTH; x += 140) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_HEIGHT); ctx.stroke();
-  }
-  for (let y = 0; y < WORLD_HEIGHT; y += 140) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke();
-  }
-
-  ctx.strokeStyle = "#c0392b";
-  ctx.lineWidth = 8;
-  ctx.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+  // Doğal Detaylı Zemin
+  drawGround();
 
   if (base) {
     ctx.fillStyle = "#6e2c00";
