@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>2D Hayatta Kalma - Kızını Kurtar</title>
+  <title>2D Hayatta Kalma - Cehennemden Kaçış</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,23 +24,22 @@
     <div class="welcome-icon">✨</div>
     <div class="welcome-text">
       <h4>Hoş Geldin Savaşçı!</h4>
-      <p>10 Günlük Zorlu Göreve Hazır Mısın?</p>
+      <p>1. ve 2. Bölüm Cehennem Macerası Başlıyor!</p>
     </div>
   </div>
 
   <!-- Giriş Menüsü -->
   <div id="device-modal">
     <div class="modal-box">
-      <div class="version-header">v2.0.0 (Bölüm 1: Kaçış)</div>
+      <div class="version-header">v2.5.0 • Cehennem Haritası Eklendi</div>
       <h2>Kızını Kurtar!</h2>
-      <div class="version-tag">🎯 Hedef: 10 Gün Dayan ve Zaman Kapısını Kır!</div>
+      <div class="version-tag">🎯 1. Harita ➔ Cehennem ➔ İman Taşı ➔ Kurtuluş!</div>
 
       <div class="input-group">
         <label for="player-name-input">Kahramanın Adı:</label>
         <input type="text" id="player-name-input" placeholder="İsmini Yaz..." maxlength="12" value="Savaşçı">
       </div>
 
-      <!-- Cinsiyet Seçimi -->
       <div class="input-group">
         <label>Karakterini Seç:</label>
         <div class="gender-selector">
@@ -56,21 +55,15 @@
         <button type="button" id="btn-ios" class="choice-btn ios-btn">🍏 iPhone (Safari)</button>
       </div>
 
-      <!-- Kayıtlı Bitirme Durumu Kutusu (Eğer Bitirmişse Çıkar) -->
-      <div id="completed-notice" class="completed-box hidden">
-        🏆 <b>Tebrikler! Oyunu Zaten Bitirdiniz.</b><br>
-        10. günde kızınızı kurtardınız. 2. Harita güncellemesi bekleniyor!<br>
-        <button type="button" id="btn-reset-save" class="reset-save-btn">Kayıt Sıfırla ve Baştan Oyna</button>
-      </div>
-
-      <div class="modal-footer-version">Yapım Sürümü: v2.0.0 • 2. Harita Pek Yakında</div>
+      <div class="modal-footer-version">Yapım Sürümü: v2.5.0 • 2 Bölüm Tam Paket</div>
     </div>
   </div>
 
-  <!-- Ana Oyun Alanı -->
+  <!-- Oyun Alanı -->
   <div id="game-container" style="display: none;">
-    <!-- Sağ Üst Panel -->
+    <!-- Üst Kontroller -->
     <div id="top-right-controls">
+      <button type="button" id="btn-craft-menu" class="hud-btn craft-hud-btn" title="Üretim Menüsü">🔨 Üretim</button>
       <button type="button" id="btn-tool-cycle" class="hud-btn" title="Aleti Değiştir">⚔️ Kılıç</button>
       <button type="button" id="btn-fullscreen" class="hud-btn" title="Tam Ekran">⛶</button>
     </div>
@@ -84,13 +77,85 @@
       </div>
     </div>
 
-    <!-- Üst Arayüz Barı -->
+    <!-- Hikaye & Alt Yazı Karakter Konuşma Kutusu -->
+    <div id="story-dialogue" class="dialogue-box hidden">
+      <div class="dialogue-avatar" id="dialogue-avatar">🧙‍♂️</div>
+      <div class="dialogue-content">
+        <div class="dialogue-speaker" id="dialogue-speaker">Rehber</div>
+        <div class="dialogue-text" id="dialogue-text">...</div>
+      </div>
+      <button type="button" id="dialogue-close-btn" class="dialogue-close">Tamam ➔</button>
+    </div>
+
+    <!-- Üretim / Crafting Modal Paneli (Map 2 İçin) -->
+    <div id="crafting-modal" class="hidden">
+      <div class="craft-box">
+        <div class="craft-header">
+          <h3>🔨 Cehennem Demirci Atölyesi</h3>
+          <button type="button" id="craft-close-btn">✖</button>
+        </div>
+        <p class="craft-sub">Topladığın altın ve demirlerle efsanevi zırh ve silahlar döv:</p>
+        <div class="craft-list">
+          <div class="craft-item">
+            <div class="craft-info">
+              <b>🪖 Altın Kask</b> (15 Altın)
+              <span>+100 Can & Savunma</span>
+            </div>
+            <button type="button" id="craft-helm-btn" class="craft-action-btn">Üret</button>
+          </div>
+          <div class="craft-item">
+            <div class="craft-info">
+              <b>🛡️ Altın Göğüslük Zırh</b> (25 Altın)
+              <span>+200 Can & Hasar Azaltma</span>
+            </div>
+            <button type="button" id="craft-chest-btn" class="craft-action-btn">Üret</button>
+          </div>
+          <div class="craft-item">
+            <div class="craft-info">
+              <b>👖 Altın Pantolon</b> (18 Altın)
+              <span>+120 Can Dayanıklılık</span>
+            </div>
+            <button type="button" id="craft-pants-btn" class="craft-action-btn">Üret</button>
+          </div>
+          <div class="craft-item">
+            <div class="craft-info">
+              <b>👢 Altın Ayakkabı</b> (12 Altın)
+              <span>+80 Can & Koşu Hızı</span>
+            </div>
+            <button type="button" id="craft-boots-btn" class="craft-action-btn">Üret</button>
+          </div>
+          <div class="craft-item">
+            <div class="craft-info">
+              <b>🗡️ Üst Düzey Demir Kılıç</b> (20 Demir)
+              <span>Yüksek Saldırı Gücü (90 Hasar)</span>
+            </div>
+            <button type="button" id="craft-sword-btn" class="craft-action-btn">Üret</button>
+          </div>
+          <div class="craft-item">
+            <div class="craft-info">
+              <b>⛏️ Üst Düzey Demir Kazma</b> (20 Demir)
+              <span>İman Taşını Kırabilen Tek Kazma!</span>
+            </div>
+            <button type="button" id="craft-pick-btn" class="craft-action-btn">Üret</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Üst Skor / Durum Barı -->
     <div id="ui-bar">
-      <div class="stat-box">❤️ <span id="health-val">100</span></div>
-      <div class="stat-box">📅 <span id="day-val">1/10 Gün</span></div>
-      <div class="stat-box">⏳ <span id="time-val">Gündüz (1:00)</span></div>
-      <div class="stat-box">🌲 <span id="wood-val">0</span></div>
-      <div class="stat-box">🪨 <span id="stone-val">0</span></div>
+      <div class="stat-box">❤️ <span id="health-val">100</span>/<span id="max-health-val">100</span></div>
+      <div class="stat-box">🗺️ <span id="map-name-val">1. Harita</span></div>
+      <div class="stat-box">📅 <span id="day-val">1. Gün</span></div>
+      <div class="stat-box">⏳ <span id="time-val">Gündüz</span></div>
+      <!-- 1. Harita Kaynakları -->
+      <div class="stat-box" id="wood-stat">🌲 <span id="wood-val">0</span></div>
+      <div class="stat-box" id="stone-stat">🪨 <span id="stone-val">0</span></div>
+      <!-- 2. Harita Madenleri -->
+      <div class="stat-box hidden" id="copper-stat">🥉 <span id="copper-val">0</span></div>
+      <div class="stat-box hidden" id="silver-stat">🥈 <span id="silver-val">0</span></div>
+      <div class="stat-box hidden" id="iron-stat">⛓️ <span id="iron-val">0</span></div>
+      <div class="stat-box hidden" id="gold-stat">🪙 <span id="gold-val">0</span></div>
     </div>
 
     <!-- Mini Harita -->
@@ -101,7 +166,7 @@
 
     <!-- Bilgisayar Kontrol İpucu -->
     <div id="pc-controls" class="hint-text">
-      <b>W,A,S,D:</b> Git | <b>Boşluk/Tık:</b> Vur | <b>Q / 1,2,3:</b> Alet Seç | <b>B:</b> Sığınak Kur / Tamir Et
+      <b>W,A,S,D:</b> Git | <b>Boşluk/Tık:</b> Vur | <b>Q / 1,2,3:</b> Alet | <b>B:</b> Sığınak | <b>C:</b> Üretim Atölyesi
     </div>
 
     <!-- Mobil Dokunmatik Katman -->
@@ -113,10 +178,40 @@
       </div>
 
       <div id="action-zone">
+        <button type="button" id="btn-craft-touch" class="touch-action-btn craft-btn">🔨</button>
         <button type="button" id="btn-build" class="touch-action-btn build-btn">🏠</button>
         <button type="button" id="btn-attack" class="touch-action-btn attack-btn">⚔️</button>
       </div>
     </div>
+
+    <!-- Final Zafer & Geliştirici Yorum / Hatıra Defteri Modalı -->
+    <div id="guestbook-modal" class="hidden">
+      <div class="guestbook-box">
+        <div class="trophy-header">🏆 KIZINLA BİRLİKTE EBEDİYEN KURTULDUNUZ! 🏆</div>
+        <p class="final-story-text">
+          1. Bölümdeki ormanı aştın, 2. Bölümdeki Cehennem Lordu'nu ve yılan istilasını İman Taşı'nın kutsal gücüyle yerle bir ettin. 
+          Kızını kucağına aldın ve bu lanetli diyardan sonsuza dek kaçtınız!
+        </p>
+
+        <div class="guestbook-form">
+          <h4>✍️ Geliştirici Hatıra & Yorum Defteri</h4>
+          <p>Oyun geliştiricisi olarak fikirlerin ve tavsiyelerin çok değerli! Adını ve mesajını hatıra olarak buraya bırak:</p>
+          <input type="text" id="comment-author" placeholder="Adınız / Takma Adınız..." maxlength="20">
+          <textarea id="comment-message" placeholder="Oyun nasıldı? Tavsiyeleriniz, anılarınız veya yorumunuz..." rows="3"></textarea>
+          <button type="button" id="btn-submit-comment" class="comment-submit-btn">Yorumu Hatıra Defterine Kaydet</button>
+        </div>
+
+        <div class="comments-list-section">
+          <h5>📜 Kayıtlı Oyuncu Yorumları & Hatıralar:</h5>
+          <div id="comments-container" class="comments-container">
+            <!-- Yorumlar dinamik eklenir -->
+          </div>
+        </div>
+
+        <button type="button" id="btn-play-again" class="play-again-btn">🔄 Oyunu Baştan Oyna</button>
+      </div>
+    </div>
+
   </div>
 
   <script src="game.js"></script>
