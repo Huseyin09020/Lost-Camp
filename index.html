@@ -17,11 +17,11 @@
     </div>
   </div>
 
-  <!-- Cihaz Seçim Ekranı -->
+  <!-- Cihaz Seçim Menüsü -->
   <div id="device-modal">
     <div class="modal-box">
       <h2>2D Hayatta Kalma</h2>
-      <div class="version-tag">Sürüm: v1.0.0 (Beta)</div>
+      <div class="version-tag">Sürüm: v1.2.0 (Aletler & Süre)</div>
       <p>Nasıl oynamak istiyorsun?</p>
       <div class="modal-buttons">
         <button id="btn-pc" class="choice-btn">💻 Bilgisayar (Klavye)</button>
@@ -32,23 +32,27 @@
 
   <!-- Ana Oyun Alanı -->
   <div id="game-container" class="hidden">
-    <!-- Sağ Üst: Tam Ekran Butonu -->
     <button id="btn-fullscreen" title="Tam Ekran Yap">⛶</button>
 
     <!-- Üst Arayüz -->
     <div id="ui-bar">
-      <div class="stat-box">❤️ Can: <span id="health-val">100</span></div>
-      <div class="stat-box">⏳ Durum: <span id="time-val">Gündüz</span></div>
-      <div class="stat-box">🌲 Odun: <span id="wood-val">0</span></div>
-      <div class="stat-box">🪨 Taş: <span id="stone-val">0</span></div>
+      <div class="stat-box">❤️ <span id="health-val">100</span></div>
+      <div class="stat-box">📅 <span id="day-val">1. Gün</span></div>
+      <div class="stat-box">⏳ <span id="time-val">Gündüz (0:25)</span></div>
+      <div class="stat-box">🌲 <span id="wood-val">0</span></div>
+      <div class="stat-box">🪨 <span id="stone-val">0</span></div>
+      <div class="stat-box">🛠️ <span id="active-tool-val">Kılıç</span></div>
     </div>
+
+    <!-- Mini Harita Tuvali -->
+    <canvas id="minimapCanvas" width="130" height="98"></canvas>
 
     <!-- Oyun Tuvali -->
     <canvas id="gameCanvas" width="800" height="500"></canvas>
 
     <!-- Bilgisayar Kontrol İpucu -->
     <div id="pc-controls" class="hint-text">
-      Hareket: <b>W,A,S,D</b> | Saldır: <b>BOŞLUK / Tık</b> | Üs Kur: <b>B</b> (10 Odun, 5 Taş)
+      <b>W,A,S,D:</b> Git | <b>Space/Tık:</b> Vur | <b>1:</b> ⚔️ Kılıç | <b>2:</b> 🪓 Balta | <b>3:</b> ⛏️ Kazma | <b>B:</b> Üs | <b>C:</b> Ateş | <b>T:</b> Tuzak
     </div>
 
     <!-- Mobil Arayüz Katmanı -->
@@ -60,10 +64,26 @@
         </div>
       </div>
 
-      <!-- Sağ Alt: Aksiyon Butonları -->
+      <!-- Sağ Alt: Aksiyon ve Alet Menüsü -->
       <div id="action-zone">
-        <button id="btn-attack" class="touch-action-btn attack-btn">⚔️</button>
-        <button id="btn-build" class="touch-action-btn build-btn">🏠</button>
+        <!-- Alet Seçim Slotları (1, 2, 3) -->
+        <div class="action-column tool-bar">
+          <button id="btn-tool-sword" class="touch-action-btn tool-btn active-tool" title="Kılıç">⚔️</button>
+          <button id="btn-tool-axe" class="touch-action-btn tool-btn" title="Balta">🪓</button>
+          <button id="btn-tool-pick" class="touch-action-btn tool-btn" title="Kazma">⛏️</button>
+        </div>
+
+        <!-- Yapılar -->
+        <div class="action-column">
+          <button id="btn-fire" class="touch-action-btn sub-btn" title="Ateş">🔥</button>
+          <button id="btn-trap" class="touch-action-btn sub-btn" title="Tuzak">🪵</button>
+          <button id="btn-build" class="touch-action-btn build-btn" title="Üs">🏠</button>
+        </div>
+
+        <!-- Büyük Vuruş Butonu -->
+        <div class="action-column">
+          <button id="btn-attack" class="touch-action-btn attack-btn" title="Vur/Topla">⚡</button>
+        </div>
       </div>
     </div>
   </div>
