@@ -1,0 +1,173 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  background-color: #1a1a1a;
+  color: #fff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Cihaz Seçim Menüsü */
+#device-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99;
+}
+
+.modal-box {
+  background: #2b2b2b;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  max-width: 90%;
+  width: 360px;
+}
+
+.modal-box h2 {
+  margin-bottom: 10px;
+}
+
+.modal-box p {
+  color: #bbb;
+  margin-bottom: 25px;
+}
+
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.choice-btn {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.choice-btn:hover {
+  background: #2980b9;
+}
+
+/* Oyun Konteyneri */
+#game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+}
+
+/* Üst Arayüz */
+#ui-bar {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 800px;
+  background: #242424;
+  padding: 10px;
+  border-radius: 8px 8px 0 0;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.stat-box {
+  background: #333;
+  padding: 5px 12px;
+  border-radius: 6px;
+}
+
+/* Tuval */
+canvas {
+  background: #4a752c;
+  display: block;
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.hint-text {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+/* Mobil Tuşlar */
+#mobile-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 800px;
+  padding: 15px;
+  background: #222;
+  border-radius: 0 0 8px 8px;
+}
+
+.d-pad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.d-pad-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+.touch-btn {
+  width: 52px;
+  height: 52px;
+  background: #444;
+  color: white;
+  border: 2px solid #666;
+  border-radius: 10px;
+  font-size: 18px;
+  touch-action: manipulation;
+}
+
+.touch-btn:active {
+  background: #2ecc71;
+}
+
+.action-btn {
+  padding: 15px 20px;
+  background: #e67e22;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  touch-action: manipulation;
+}
+
+.action-btn:active {
+  background: #d35400;
+}
