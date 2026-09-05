@@ -1,15 +1,13 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Ekran boyutunu ayarla
 canvas.width = 800;
 canvas.height = 500;
 
-// Büyük Dünya Boyutları
 const WORLD_WIDTH = 2400;
 const WORLD_HEIGHT = 1800;
 
-// UI Elementleri
+// UI
 const healthEl = document.getElementById("health-val");
 const timeEl = document.getElementById("time-val");
 const woodEl = document.getElementById("wood-val");
@@ -23,7 +21,6 @@ let isMobile = false;
 let gameRunning = false;
 let isDead = false;
 
-// Cihaz Seçimi
 document.getElementById("btn-pc").addEventListener("click", () => startGame(false));
 document.getElementById("btn-mobile").addEventListener("click", () => startGame(true));
 
@@ -40,21 +37,19 @@ function startGame(mobile) {
   requestAnimationFrame(gameLoop);
 }
 
-// Oyuncu
 const player = {
   x: WORLD_WIDTH / 2,
   y: WORLD_HEIGHT / 2,
   size: 22,
   speed: 4.5,
   health: 100,
+  maxHealth: 100,
   wood: 0,
   stone: 0,
-  facing: 1 // 1: sağ, -1: sol
+  facing: 1
 };
 
-// Kamera
 const camera = { x: 0, y: 0 };
-
 let trees = [];
 let rocks = [];
 let monsters = [];
@@ -72,7 +67,6 @@ window.addEventListener("keyup", (e) => {
   keys[e.key.toLowerCase()] = false;
 });
 
-// Mobil Tuşlar
 function setupTouchButton(id, key) {
   const btn = document.getElementById(id);
   btn.addEventListener("touchstart", (e) => { e.preventDefault(); keys[key] = true; });
@@ -86,7 +80,23 @@ setupTouchButton("btn-left", "a");
 setupTouchButton("btn-right", "d");
 document.getElementById("btn-build").addEventListener("click", buildBase);
 
-// Oyunu Sıfırla / Başlat
+// Yardımcı: Rastgele Kaynak Ekleme
+function spawnTree() {
+  trees.push({
+    x: Math.random() * (WORLD_WIDTH - 120) + 60,
+    y: Math.random() * (WORLD_HEIGHT - 120) + 60,
+    size: 32
+  });
+}
+
+function spawnRock() {
+  rocks.push({
+    x: Math.random() * (WORLD_WIDTH - 120) + 60,
+    y: Math.random() * (WORLD_HEIGHT - 120) + 60,
+    size: 24
+  });
+}
+
 function resetGame() {
   player.x = WORLD_WIDTH / 2;
   player.y = WORLD_HEIGHT / 2;
@@ -102,62 +112,54 @@ function resetGame() {
   trees = [];
   rocks = [];
 
-  // Büyük haritaya 60 Ağaç
-  for (let i = 0; i < 60; i++) {
-    trees.push({
-      x: Math.random() * (WORLD_WIDTH - 120) + 60,
-      y: Math.random() * (WORLD_HEIGHT - 120) + 60,
-      size: 32
-    });
-  }
-
-  // Büyük haritaya 35 Taş
-  for (let i = 0; i < 35; i++) {
-    rocks.push({
-      x: Math.random() * (WORLD_WIDTH - 120) + 60,
-      y: Math.random() * (WORLD_HEIGHT - 120) + 60,
-      size: 24
-    });
-  }
+  for (let i = 0; i < 60; i++) spawnTree();
+  for (let i = 0; i < 35; i++) spawnRock();
 
   updateUI();
 }
 
-// Üs Kurma
 function buildBase() {
   if (base || isDead) return;
   if (player.wood >= 10 && player.stone >= 5) {
     player.wood -= 10;
     player.stone -= 5;
-    base = { x: player.x - 45, y: player.y - 45, size: 90 };
+    base = { x: player.x - 55, y: player.y - 55, size: 110 };
     updateUI();
   }
 }
 
-// Oyuncu Hareketi ve Kamera Takibi
+function isInsideBase(target) {
+  if (!base) return false;
+  return (
+    target.x >= base.x &&
+    target.x <= base.x + base.size &&
+    target.y >= base.y &&
+    target.y <= base.y + base.size
+  );
+}
+
 function updatePlayer() {
   if (isDead) return;
 
-  let moving = false;
-  if (keys["w"] || keys["arrowup"]) { player.y -= player.speed; moving = true; }
-  if (keys["s"] || keys["arrowdown"]) { player.y += player.speed; moving = true; }
-  if (keys["a"] || keys["arrowleft"]) { player.x -= player.speed; player.facing = -1; moving = true; }
-  if (keys["d"] || keys["arrowright"]) { player.x += player.speed; player.facing = 1; moving = true; }
+  if (keys["w"] || keys["arrowup"]) player.y -= player.speed;
+  if (keys["s"] || keys["arrowdown"]) player.y += player.speed;
+  if (keys["a"] || keys["arrowleft"]) { player.x -= player.speed; player.facing = -1; }
+  if (keys["d"] || keys["arrowright"]) { player.x += player.speed; player.facing = 1; }
 
-  // Dünya sınırları
   player.x = Math.max(player.size, Math.min(WORLD_WIDTH - player.size, player.x));
   player.y = Math.max(player.size, Math.min(WORLD_HEIGHT - player.size, player.y));
 
-  // Kamera karakteri ortalar
+  if (isInsideBase(player) && player.health < player.maxHealth) {
+    player.health = Math.min(player.maxHealth, player.health + 0.15);
+    updateUI();
+  }
+
   camera.x = player.x - canvas.width / 2;
   camera.y = player.y - canvas.height / 2;
-
-  // Kameranın harita dışına taşmasını engelle
   camera.x = Math.max(0, Math.min(WORLD_WIDTH - canvas.width, camera.x));
   camera.y = Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, camera.y));
 }
 
-// Kaynak Toplama
 function checkResources() {
   if (isDead) return;
 
@@ -180,19 +182,24 @@ function checkResources() {
   }
 }
 
-// Gece Döngüsü ve Yaratıklar
 function handleWorld() {
   if (isDead) return;
   gameTick++;
 
-  // 700 karede bir döngü
+  // 1. Doğal Yavaş Yenilenme (Kaynaklar çok azalırsa zamanla yenileri çıkar)
+  if (gameTick % 120 === 0) {
+    if (trees.length < 35) spawnTree();
+    if (rocks.length < 20) spawnRock();
+  }
+
+  // 2. Gece / Gündüz Döngüsü (Her 700 karede bir)
   if (gameTick % 700 === 0) {
     isNight = !isNight;
     timeEl.innerText = isNight ? "Gece 🌙" : "Gündüz ☀️";
     timeEl.style.color = isNight ? "#e74c3c" : "#f1c40f";
 
     if (isNight) {
-      // Oyuncunun çevresine 5 yaratık gönder
+      // Gece olduğunda canavarlar çıkar
       for (let i = 0; i < 5; i++) {
         let spawnAngle = Math.random() * Math.PI * 2;
         let spawnDist = 450 + Math.random() * 200;
@@ -200,31 +207,51 @@ function handleWorld() {
           x: player.x + Math.cos(spawnAngle) * spawnDist,
           y: player.y + Math.sin(spawnAngle) * spawnDist,
           size: 22,
-          speed: 2.2
+          speed: 2.1
         });
       }
     } else {
+      // GÜNDÜZ OLDUĞUNDA: Canavarlar ölür ve haritaya taze kaynak yağar!
       monsters = [];
+      for (let i = 0; i < 15; i++) spawnTree();
+      for (let i = 0; i < 8; i++) spawnRock();
     }
   }
 
-  // Yaratık yapay zekası
+  const playerSafe = isInsideBase(player);
+
   monsters.forEach(m => {
     let angle = Math.atan2(player.y - m.y, player.x - m.x);
-    m.x += Math.cos(angle) * m.speed;
-    m.y += Math.sin(angle) * m.speed;
+    let nextX = m.x + Math.cos(angle) * m.speed;
+    let nextY = m.y + Math.sin(angle) * m.speed;
 
-    let dist = Math.hypot(player.x - m.x, player.y - m.y);
-    if (dist < player.size + m.size) {
-      let inBase = base && (player.x > base.x && player.x < base.x + base.size &&
-                            player.y > base.y && player.y < base.y + base.size);
-      player.health -= inBase ? 0.2 : 0.7;
+    if (base) {
+      let willEnterBase = (
+        nextX + m.size > base.x &&
+        nextX - m.size < base.x + base.size &&
+        nextY + m.size > base.y &&
+        nextY - m.size < base.y + base.size
+      );
 
-      if (player.health <= 0) {
-        player.health = 0;
-        isDead = true;
+      if (!willEnterBase) {
+        m.x = nextX;
+        m.y = nextY;
       }
-      updateUI();
+    } else {
+      m.x = nextX;
+      m.y = nextY;
+    }
+
+    if (!playerSafe) {
+      let dist = Math.hypot(player.x - m.x, player.y - m.y);
+      if (dist < player.size + m.size) {
+        player.health -= 0.6;
+        if (player.health <= 0) {
+          player.health = 0;
+          isDead = true;
+        }
+        updateUI();
+      }
     }
   });
 }
@@ -235,27 +262,22 @@ function updateUI() {
   stoneEl.innerText = player.stone;
 }
 
-// Karakter Çizimi
 function drawPlayer(x, y) {
   ctx.save();
   ctx.translate(x, y);
   if (player.facing === -1) ctx.scale(-1, 1);
 
-  // Gövde (Zırh / Kıyafet)
   ctx.fillStyle = "#2980b9";
   ctx.fillRect(-10, -14, 20, 26);
 
-  // Kafa
   ctx.fillStyle = "#f1c40f";
   ctx.beginPath();
   ctx.arc(0, -22, 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // Göz
   ctx.fillStyle = "#2c3e50";
   ctx.fillRect(3, -24, 3, 3);
 
-  // Kılıç
   ctx.fillStyle = "#bdc3c7";
   ctx.fillRect(8, -8, 14, 4);
   ctx.fillStyle = "#7f8c8d";
@@ -264,25 +286,21 @@ function drawPlayer(x, y) {
   ctx.restore();
 }
 
-// Yaratık Çizimi
 function drawMonster(x, y) {
   ctx.save();
   ctx.translate(x, y);
 
-  // Canavar Gövdesi (Karanlık Kurt/İblis)
   ctx.fillStyle = "#8e1b1b";
   ctx.beginPath();
   ctx.arc(0, 0, 18, 0, Math.PI * 2);
   ctx.fill();
 
-  // Kırmızı Parlayan Gözler
   ctx.fillStyle = "#ff0000";
   ctx.beginPath();
   ctx.arc(-5, -4, 4, 0, Math.PI * 2);
   ctx.arc(5, -4, 4, 0, Math.PI * 2);
   ctx.fill();
 
-  // Sivri Dişler
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
   ctx.moveTo(-6, 6); ctx.lineTo(-3, 12); ctx.lineTo(0, 6);
@@ -292,13 +310,10 @@ function drawMonster(x, y) {
   ctx.restore();
 }
 
-// Ağaç Çizimi
 function drawTree(x, y) {
-  // Gövde
   ctx.fillStyle = "#5c3a21";
   ctx.fillRect(x - 8, y, 16, 26);
 
-  // Yaprak Katmanları
   ctx.fillStyle = "#1e824c";
   ctx.beginPath();
   ctx.arc(x, y - 10, 26, 0, Math.PI * 2);
@@ -310,7 +325,6 @@ function drawTree(x, y) {
   ctx.fill();
 }
 
-// Taş Çizimi
 function drawRock(x, y, size) {
   ctx.fillStyle = "#7f8c8d";
   ctx.beginPath();
@@ -322,56 +336,49 @@ function drawRock(x, y, size) {
   ctx.fill();
 }
 
-// Ekrana Çizdirme
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.save();
-  // Kamerayı karaktere odakla
   ctx.translate(-camera.x, -camera.y);
 
-  // Zemin ve Grid Çizgileri
   ctx.fillStyle = isNight ? "#142615" : "#44782b";
   ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  // Harita sınır çizgisi
   ctx.strokeStyle = "#e74c3c";
   ctx.lineWidth = 6;
   ctx.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  // Üs (Sığınak Kulübesi)
   if (base) {
-    ctx.fillStyle = "#d35400";
+    ctx.fillStyle = "#795548";
     ctx.fillRect(base.x, base.y, base.size, base.size);
-    // Çatı
+
+    ctx.strokeStyle = "#f39c12";
+    ctx.lineWidth = 6;
+    ctx.strokeRect(base.x, base.y, base.size, base.size);
+
     ctx.fillStyle = "#b93e00";
     ctx.beginPath();
     ctx.moveTo(base.x - 10, base.y);
     ctx.lineTo(base.x + base.size / 2, base.y - 30);
     ctx.lineTo(base.x + base.size + 10, base.y);
     ctx.fill();
-    // Kapı
-    ctx.fillStyle = "#2c3e50";
-    ctx.fillRect(base.x + base.size / 2 - 12, base.y + base.size - 28, 24, 28);
+
+    ctx.fillStyle = "rgba(46, 204, 113, 0.25)";
+    ctx.fillRect(base.x, base.y, base.size, base.size);
   }
 
-  // Taşlar
   rocks.forEach(r => drawRock(r.x, r.y, r.size));
-
-  // Ağaçlar
   trees.forEach(t => drawTree(t.x, t.y));
 
-  // Karakter
   if (!isDead) {
     drawPlayer(player.x, player.y);
   }
 
-  // Yaratıklar
   monsters.forEach(m => drawMonster(m.x, m.y));
 
   ctx.restore();
 
-  // Ölüm Ekranı
   if (isDead) {
     ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -387,12 +394,10 @@ function render() {
   }
 }
 
-// Mobilde ölüm ekranına tıklayınca dirilme
 canvas.addEventListener("click", () => {
   if (isDead) resetGame();
 });
 
-// Oyun Döngüsü
 function gameLoop() {
   if (gameRunning) {
     updatePlayer();
