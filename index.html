@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- iPhone Safari Tam Ekran Meta Etiketleri -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>2D Hayatta Kalma</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -13,26 +16,33 @@
     <div class="rotate-box">
       <div class="rotate-icon">📱 ➔ 🔄</div>
       <h3>Lütfen Telefonu Yan Çevirin</h3>
-      <p>En iyi deneyim için yatay ekran gereklidir.</p>
+      <p>En iyi oyun deneyimi için yatay ekran gereklidir.</p>
     </div>
   </div>
 
-  <!-- Giriş Menüsü -->
+  <!-- Giriş Menüsü: İsim + 3 Cihaz Seçeneği -->
   <div id="device-modal">
     <div class="modal-box">
       <h2>2D Hayatta Kalma</h2>
-      <div class="version-tag">v1.3.0 (Mobil Sadeleştirme)</div>
-      <p>Oyun Modunu Seç:</p>
+      <div class="version-tag">v1.4.0 (Cihaz Özel Optimizasyon)</div>
+
+      <div class="input-group">
+        <label for="player-name-input">Karakterinin İsmi:</label>
+        <input type="text" id="player-name-input" placeholder="İsmini Yaz..." maxlength="12" value="Savaşçı">
+      </div>
+
+      <p>Cihazını Seç ve Başla:</p>
       <div class="modal-buttons">
-        <button id="btn-pc" class="choice-btn">💻 Bilgisayar (Klavye)</button>
-        <button id="btn-mobile" class="choice-btn">📱 Mobil (Dokunmatik)</button>
+        <button id="btn-pc" class="choice-btn pc-btn">💻 Bilgisayar (Klavye & Mouse)</button>
+        <button id="btn-android" class="choice-btn android-btn">🤖 Android (Tam Ekran API)</button>
+        <button id="btn-ios" class="choice-btn ios-btn">🍏 iPhone (Safari WebApp Modu)</button>
       </div>
     </div>
   </div>
 
   <!-- Ana Oyun Alanı -->
   <div id="game-container" class="hidden">
-    <!-- Sağ Üst Panel: Tam Ekran & Tek Alet Değiştirme Tuşu -->
+    <!-- Sağ Üst Panel: Alet Değiştirme ve Tam Ekran -->
     <div id="top-right-controls">
       <button id="btn-tool-cycle" class="hud-btn" title="Aleti Değiştir">⚔️ Kılıç</button>
       <button id="btn-fullscreen" class="hud-btn" title="Tam Ekran">⛶</button>
@@ -55,7 +65,7 @@
 
     <!-- Bilgisayar Kontrol İpucu -->
     <div id="pc-controls" class="hint-text">
-      <b>W,A,S,D:</b> Hareket | <b>Space/Tık:</b> Vur/Topla | <b>Q veya 1,2,3:</b> Alet Değiştir | <b>B:</b> Üs (10O, 5T)
+      <b>W,A,S,D:</b> Hareket | <b>Space/Tık:</b> Vur | <b>Q veya 1,2,3:</b> Alet Seç | <b>B:</b> Üs (10O, 5T)
     </div>
 
     <!-- Mobil Arayüz Katmanı -->
@@ -67,7 +77,7 @@
         </div>
       </div>
 
-      <!-- Sağ Alt: Sadece 2 Tane Ferah Buton -->
+      <!-- Sağ Alt: 2 Büyük Buton -->
       <div id="action-zone">
         <button id="btn-build" class="touch-action-btn build-btn">🏠</button>
         <button id="btn-attack" class="touch-action-btn attack-btn">⚔️</button>
