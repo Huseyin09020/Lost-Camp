@@ -8,13 +8,14 @@
 }
 
 body {
-  background-color: #0a0a0a;
+  background-color: #000;
   color: #fff;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  width: 100vw;
   overflow: hidden;
 }
 
@@ -22,37 +23,49 @@ body {
   display: none !important;
 }
 
-#btn-fullscreen {
+/* Sağ Üst Panel (Alet Değiştirme ve Tam Ekran) */
+#top-right-controls {
   position: absolute;
   top: 10px;
-  right: 14px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 120;
+}
+
+.hud-btn {
   background: rgba(30, 30, 30, 0.85);
   color: #fff;
-  border: 1px solid #555;
+  border: 1px solid #666;
   border-radius: 8px;
-  width: 38px;
-  height: 38px;
-  font-size: 18px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: bold;
   cursor: pointer;
-  z-index: 150;
   backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-#btn-fullscreen:active {
+#btn-fullscreen {
+  font-size: 18px;
+  padding: 6px 10px;
+}
+
+.hud-btn:active {
   background: #3498db;
-  transform: scale(0.92);
+  transform: scale(0.95);
 }
 
+/* Mini Harita (Sağ Üst Panel Altında) */
 #minimapCanvas {
   position: absolute;
-  top: 55px;
-  right: 14px;
+  top: 52px;
+  right: 12px;
   background: rgba(10, 10, 10, 0.75);
   border: 2px solid #555;
-  border-radius: 8px;
+  border-radius: 6px;
   z-index: 60;
   pointer-events: none;
 }
@@ -81,15 +94,8 @@ body {
 }
 
 .rotate-icon {
-  font-size: 48px;
-  margin-bottom: 15px;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+  font-size: 44px;
+  margin-bottom: 12px;
 }
 
 @media screen and (orientation: portrait) and (max-width: 900px) {
@@ -105,7 +111,7 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.92);
+  background: rgba(0, 0, 0, 0.95);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -114,7 +120,7 @@ body {
 
 .modal-box {
   background: #202020;
-  padding: 26px;
+  padding: 24px;
   border-radius: 14px;
   text-align: center;
   box-shadow: 0 8px 30px rgba(0,0,0,0.8);
@@ -136,7 +142,7 @@ body {
   font-weight: bold;
   padding: 3px 8px;
   border-radius: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .modal-box p {
@@ -176,7 +182,7 @@ body {
 /* Üst Arayüz */
 #ui-bar {
   position: absolute;
-  top: 8px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -199,7 +205,7 @@ body {
 canvas#gameCanvas {
   background: #3a6824;
   display: block;
-  max-width: 100%;
+  max-width: 100vw;
   max-height: 100vh;
   object-fit: contain;
 }
@@ -214,7 +220,7 @@ canvas#gameCanvas {
   border-radius: 6px;
 }
 
-/* Mobil Kontroller */
+/* Mobil Dokunmatik Katman */
 #mobile-overlay {
   position: absolute;
   top: 0;
@@ -225,12 +231,13 @@ canvas#gameCanvas {
   z-index: 100;
 }
 
+/* Joystick (Sol Alt) */
 #joystick-zone {
   position: absolute;
   bottom: 25px;
   left: 30px;
-  width: 125px;
-  height: 125px;
+  width: 120px;
+  height: 120px;
   pointer-events: auto;
 }
 
@@ -238,7 +245,7 @@ canvas#gameCanvas {
   width: 100%;
   height: 100%;
   background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.35);
   border-radius: 50%;
   position: relative;
   display: flex;
@@ -247,35 +254,30 @@ canvas#gameCanvas {
 }
 
 #joystick-knob {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   background: rgba(52, 152, 219, 0.9);
   border: 2px solid #fff;
   border-radius: 50%;
   position: absolute;
-  box-shadow: 0 0 10px rgba(0,0,0,0.6);
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
   pointer-events: none;
 }
 
+/* Sağ Alt: Sadece 2 Ferah Buton */
 #action-zone {
   position: absolute;
-  bottom: 20px;
-  right: 25px;
+  bottom: 25px;
+  right: 30px;
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 16px;
   pointer-events: auto;
-  align-items: flex-end;
-}
-
-.action-column {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .touch-action-btn {
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -284,40 +286,17 @@ canvas#gameCanvas {
 }
 
 .attack-btn {
-  width: 70px;
-  height: 70px;
-  font-size: 28px;
-  background: rgba(231, 76, 60, 0.9);
+  width: 74px;
+  height: 74px;
+  font-size: 30px;
+  background: rgba(231, 76, 60, 0.95);
 }
 
 .build-btn {
-  width: 48px;
-  height: 48px;
-  font-size: 19px;
+  width: 54px;
+  height: 54px;
+  font-size: 22px;
   background: rgba(230, 126, 34, 0.9);
-}
-
-.sub-btn {
-  width: 42px;
-  height: 42px;
-  font-size: 16px;
-  background: rgba(52, 73, 94, 0.9);
-}
-
-/* Alet Seçim Butonları */
-.tool-btn {
-  width: 44px;
-  height: 44px;
-  font-size: 18px;
-  background: #34495e;
-  border: 2px solid #7f8c8d;
-}
-
-.active-tool {
-  border-color: #f1c40f !important;
-  background: #2c3e50 !important;
-  box-shadow: 0 0 10px #f1c40f !important;
-  transform: scale(1.08);
 }
 
 .touch-action-btn:active {
