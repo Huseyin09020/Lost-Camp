@@ -210,51 +210,53 @@ body.ios-fullscreen {
   font-weight: 600;
 }
 
-/* Sağ Üst Panel */
+/* Sağ Üst Panel: Üretim, Alet ve Tam Ekran */
 #top-right-controls {
   position: absolute;
-  top: 12px;
-  right: 14px;
+  top: 10px;
+  right: 12px;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
   z-index: 120;
 }
 
 .hud-btn {
-  background: rgba(20, 25, 20, 0.75);
+  background: rgba(20, 25, 20, 0.85);
   color: #fff;
   border: 1.5px solid rgba(255, 255, 255, 0.25);
   border-radius: 12px;
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 7px 11px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
 }
 
 .craft-hud-btn {
-  background: rgba(211, 84, 0, 0.85);
+  background: rgba(211, 84, 0, 0.9);
   border-color: #f39c12;
 }
 
 #btn-fullscreen {
-  font-size: 16px;
-  padding: 8px 12px;
+  font-size: 15px;
+  padding: 7px 10px;
 }
 
 /* Başarım Banner */
 #achievement-banner {
   position: absolute;
-  top: 60px;
-  right: 14px;
+  top: 55px;
+  right: 12px;
   background: linear-gradient(135deg, rgba(20, 30, 20, 0.95), rgba(40, 60, 40, 0.9));
   border: 2px solid #f1c40f;
-  padding: 10px 16px;
+  padding: 8px 14px;
   border-radius: 14px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   z-index: 200;
   box-shadow: 0 8px 24px rgba(0,0,0,0.6);
   animation: slideDown 0.3s ease-out;
@@ -265,68 +267,60 @@ body.ios-fullscreen {
   to { transform: translateY(0); opacity: 1; }
 }
 
-.ach-icon { font-size: 26px; }
-.ach-title { font-size: 11px; color: #f1c40f; font-weight: 800; text-transform: uppercase; }
-.ach-desc { font-size: 13px; color: #fff; font-weight: 700; }
+.ach-icon { font-size: 24px; }
+.ach-title { font-size: 10px; color: #f1c40f; font-weight: 800; text-transform: uppercase; }
+.ach-desc { font-size: 12px; color: #fff; font-weight: 700; }
 
 /* Hikaye & Alt Yazı Kutusu */
 .dialogue-box {
   position: absolute;
-  bottom: 70px;
+  bottom: 75px;
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
-  max-width: 650px;
-  background: rgba(15, 20, 15, 0.94);
+  max-width: 620px;
+  background: rgba(15, 20, 15, 0.95);
   border: 2px solid #2ecc71;
   border-radius: 16px;
-  padding: 12px 18px;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   z-index: 300;
   box-shadow: 0 10px 30px rgba(0,0,0,0.8);
   backdrop-filter: blur(8px);
 }
 
 .dialogue-avatar {
-  font-size: 36px;
+  font-size: 32px;
   background: rgba(255,255,255,0.08);
-  padding: 8px;
+  padding: 6px;
   border-radius: 50%;
 }
 
-.dialogue-content {
-  flex: 1;
-}
-
+.dialogue-content { flex: 1; }
 .dialogue-speaker {
-  font-size: 12px;
+  font-size: 11px;
   color: #2ecc71;
   font-weight: 800;
   text-transform: uppercase;
   margin-bottom: 2px;
 }
-
-.dialogue-text {
-  font-size: 13px;
-  line-height: 1.4;
-  color: #ecf0f1;
-}
+.dialogue-text { font-size: 12px; line-height: 1.35; color: #ecf0f1; }
 
 .dialogue-close {
   background: #27ae60;
   color: white;
   border: none;
-  padding: 8px 14px;
-  border-radius: 10px;
+  padding: 7px 12px;
+  border-radius: 8px;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   white-space: nowrap;
 }
 
-/* Üretim / Crafting Modal */
+/* Üretim Modal */
 #crafting-modal {
   position: fixed;
   top: 0;
@@ -344,9 +338,9 @@ body.ios-fullscreen {
   background: #1e130c;
   border: 2px solid #e67e22;
   border-radius: 18px;
-  padding: 20px;
+  padding: 18px;
   width: 92%;
-  max-width: 480px;
+  max-width: 460px;
   max-height: 85vh;
   overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0,0,0,0.9);
@@ -356,63 +350,34 @@ body.ios-fullscreen {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
-.craft-header h3 {
-  color: #f39c12;
-  font-size: 18px;
-}
+.craft-header h3 { color: #f39c12; font-size: 17px; }
+#craft-close-btn { background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; }
+.craft-sub { font-size: 11px; color: #bbb; margin-bottom: 12px; }
 
-#craft-close-btn {
-  background: none;
-  border: none;
-  color: #aaa;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-.craft-sub {
-  font-size: 12px;
-  color: #bbb;
-  margin-bottom: 14px;
-}
-
-.craft-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
+.craft-list { display: flex; flex-direction: column; gap: 8px; }
 .craft-item {
   background: rgba(255,255,255,0.05);
   border: 1px solid #4d260c;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-radius: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
-.craft-info b {
-  display: block;
-  font-size: 14px;
-  color: #f1c40f;
-}
-
-.craft-info span {
-  font-size: 11px;
-  color: #aaa;
-}
+.craft-info b { display: block; font-size: 13px; color: #f1c40f; }
+.craft-info span { font-size: 10px; color: #aaa; }
 
 .craft-action-btn {
   background: #d35400;
   color: white;
   border: none;
-  padding: 8px 14px;
+  padding: 7px 12px;
   border-radius: 8px;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
 }
 
@@ -425,8 +390,8 @@ body.ios-fullscreen {
 /* Mini Harita */
 #minimapCanvas {
   position: absolute;
-  top: 120px;
-  right: 14px;
+  top: 52px;
+  right: 12px;
   background: rgba(10, 15, 10, 0.85);
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 10px;
@@ -473,33 +438,43 @@ body.ios-fullscreen {
   overflow: hidden;
 }
 
+/* ========================================================
+   ÖNEMLİ: ANDROID & MOBİL İÇİN DÜZELTİLMİŞ ÜST KAYNAK BARI
+   Sağdaki butonların altına girmemesi için sol tarafa ve 
+   güvenli boşlukla hizalandı.
+======================================================== */
 #ui-bar {
   position: absolute;
   top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 12px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(15, 22, 15, 0.88);
-  padding: 6px 14px;
+  gap: 5px;
+  background: rgba(15, 22, 15, 0.9);
+  padding: 5px 12px;
   border-radius: 30px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   z-index: 50;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   flex-wrap: nowrap;
-  max-width: 95vw;
+  /* Sağdaki butonlara (Üretim, Alet, Tam Ekran) çarpmaması için güvenli alan */
+  max-width: calc(100vw - 230px);
   overflow-x: auto;
+  scrollbar-width: none;
+}
+
+#ui-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .stat-box {
   white-space: nowrap;
-  padding: 3px 8px;
+  padding: 3px 7px;
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 canvas#gameCanvas {
@@ -536,10 +511,10 @@ canvas#gameCanvas {
 
 #joystick-zone {
   position: absolute;
-  bottom: 24px;
-  left: 24px;
-  width: 124px;
-  height: 124px;
+  bottom: 20px;
+  left: 20px;
+  width: 118px;
+  height: 118px;
   pointer-events: auto;
 }
 
@@ -557,8 +532,8 @@ canvas#gameCanvas {
 }
 
 #joystick-knob {
-  width: 50px;
-  height: 50px;
+  width: 46px;
+  height: 46px;
   background: radial-gradient(circle at 35% 35%, #5dade2, #2471a3);
   border: 2px solid #fff;
   border-radius: 50%;
@@ -567,13 +542,14 @@ canvas#gameCanvas {
   pointer-events: none;
 }
 
+/* Sağ Alt Butonlar */
 #action-zone {
   position: absolute;
-  bottom: 24px;
-  right: 24px;
+  bottom: 20px;
+  right: 20px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   pointer-events: auto;
 }
 
@@ -589,23 +565,23 @@ canvas#gameCanvas {
 }
 
 .attack-btn {
-  width: 78px;
-  height: 78px;
-  font-size: 32px;
+  width: 74px;
+  height: 74px;
+  font-size: 30px;
   background: radial-gradient(circle at 35% 35%, #e74c3c, #922b21);
 }
 
 .build-btn {
-  width: 54px;
-  height: 54px;
-  font-size: 22px;
+  width: 52px;
+  height: 52px;
+  font-size: 20px;
   background: radial-gradient(circle at 35% 35%, #f39c12, #b9770e);
 }
 
 .craft-btn {
-  width: 50px;
-  height: 50px;
-  font-size: 20px;
+  width: 48px;
+  height: 48px;
+  font-size: 19px;
   background: radial-gradient(circle at 35% 35%, #8e44ad, #5b2c6f);
 }
 
@@ -613,7 +589,7 @@ canvas#gameCanvas {
   transform: scale(0.9);
 }
 
-/* Final Zafer & Ziyaretçi / Hatıra Defteri Modalı */
+/* Final Zafer & Hatıra Defteri */
 #guestbook-modal {
   position: fixed;
   top: 0;
@@ -632,8 +608,8 @@ canvas#gameCanvas {
   background: #141714;
   border: 2px solid #f1c40f;
   border-radius: 20px;
-  padding: 24px;
-  max-width: 600px;
+  padding: 22px;
+  max-width: 580px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -642,39 +618,30 @@ canvas#gameCanvas {
 }
 
 .trophy-header {
-  font-size: 22px;
+  font-size: 21px;
   color: #f1c40f;
   font-weight: 900;
   margin-bottom: 8px;
 }
 
 .final-story-text {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
   color: #ddd;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .guestbook-form {
   background: rgba(255,255,255,0.05);
   border: 1px solid #334433;
-  padding: 14px;
+  padding: 12px;
   border-radius: 12px;
   text-align: left;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
-.guestbook-form h4 {
-  color: #2ecc71;
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.guestbook-form p {
-  font-size: 11px;
-  color: #aaa;
-  margin-bottom: 10px;
-}
+.guestbook-form h4 { color: #2ecc71; font-size: 13px; margin-bottom: 3px; }
+.guestbook-form p { font-size: 10.5px; color: #aaa; margin-bottom: 8px; }
 
 #comment-author, #comment-message {
   width: 100%;
@@ -683,7 +650,7 @@ canvas#gameCanvas {
   color: white;
   padding: 8px 12px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   margin-bottom: 8px;
   outline: none;
 }
@@ -695,56 +662,39 @@ canvas#gameCanvas {
   padding: 8px 16px;
   border-radius: 8px;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 11.5px;
   cursor: pointer;
   width: 100%;
 }
 
-.comments-list-section {
-  text-align: left;
-  margin-bottom: 18px;
-}
-
-.comments-list-section h5 {
-  font-size: 13px;
-  color: #f1c40f;
-  margin-bottom: 8px;
-}
+.comments-list-section { text-align: left; margin-bottom: 16px; }
+.comments-list-section h5 { font-size: 12px; color: #f1c40f; margin-bottom: 6px; }
 
 .comments-container {
-  max-height: 140px;
+  max-height: 130px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .comment-card {
   background: rgba(255,255,255,0.04);
   border-left: 3px solid #2ecc71;
-  padding: 8px 10px;
+  padding: 6px 10px;
   border-radius: 6px;
 }
 
-.comment-card-author {
-  font-size: 12px;
-  color: #2ecc71;
-  font-weight: bold;
-}
-
-.comment-card-msg {
-  font-size: 11px;
-  color: #ccc;
-  margin-top: 2px;
-}
+.comment-card-author { font-size: 11.5px; color: #2ecc71; font-weight: bold; }
+.comment-card-msg { font-size: 10.5px; color: #ccc; margin-top: 2px; }
 
 .play-again-btn {
   background: #e67e22;
   color: white;
   border: none;
-  padding: 10px 24px;
-  border-radius: 12px;
-  font-size: 14px;
+  padding: 9px 20px;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: bold;
   cursor: pointer;
 }
