@@ -8,10 +8,20 @@
 </head>
 <body>
 
+  <!-- Dikey Ekran Uyarısı -->
+  <div id="rotate-warning">
+    <div class="rotate-box">
+      <div class="rotate-icon">📱 ➔ 🔄</div>
+      <h3>Lütfen Telefonu Yan Çevirin</h3>
+      <p>En iyi oyun deneyimi için yatay ekran gereklidir.</p>
+    </div>
+  </div>
+
   <!-- Cihaz Seçim Ekranı -->
   <div id="device-modal">
     <div class="modal-box">
-      <h2>Oyun Modunu Seç</h2>
+      <h2>2D Hayatta Kalma</h2>
+      <div class="version-tag">Sürüm: v1.0.0 (Beta)</div>
       <p>Nasıl oynamak istiyorsun?</p>
       <div class="modal-buttons">
         <button id="btn-pc" class="choice-btn">💻 Bilgisayar (Klavye)</button>
@@ -22,6 +32,9 @@
 
   <!-- Ana Oyun Alanı -->
   <div id="game-container" class="hidden">
+    <!-- Sağ Üst: Tam Ekran Butonu -->
+    <button id="btn-fullscreen" title="Tam Ekran Yap">⛶</button>
+
     <!-- Üst Arayüz -->
     <div id="ui-bar">
       <div class="stat-box">❤️ Can: <span id="health-val">100</span></div>
@@ -38,9 +51,9 @@
       Hareket: <b>W,A,S,D</b> | Saldır: <b>BOŞLUK / Tık</b> | Üs Kur: <b>B</b> (10 Odun, 5 Taş)
     </div>
 
-    <!-- Mobil Arayüz Katmanı (Joystick + Aksiyon Butonları) -->
+    <!-- Mobil Arayüz Katmanı -->
     <div id="mobile-overlay" class="hidden">
-      <!-- Sol Alt: Dokunmatik Joystick Alanı -->
+      <!-- Sol Alt: Dokunmatik Joystick -->
       <div id="joystick-zone">
         <div id="joystick-base">
           <div id="joystick-knob"></div>
