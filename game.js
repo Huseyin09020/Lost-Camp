@@ -7,7 +7,7 @@ canvas.height = 500;
 const WORLD_WIDTH = 2400;
 const WORLD_HEIGHT = 1800;
 
-// UI Elementleri
+// UI
 const healthEl = document.getElementById("health-val");
 const timeEl = document.getElementById("time-val");
 const woodEl = document.getElementById("wood-val");
@@ -16,10 +16,36 @@ const deviceModal = document.getElementById("device-modal");
 const gameContainer = document.getElementById("game-container");
 const mobileOverlay = document.getElementById("mobile-overlay");
 const pcControls = document.getElementById("pc-controls");
+const fullscreenBtn = document.getElementById("btn-fullscreen");
 
 let isMobile = false;
 let gameRunning = false;
 let isDead = false;
+
+// Tam Ekran Fonksiyonu
+function toggleFullScreen() {
+  const doc = window.document;
+  const docEl = doc.documentElement;
+
+  const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+  const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+  if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+    if (requestFullScreen) {
+      requestFullScreen.call(docEl);
+    }
+  } else {
+    if (cancelFullScreen) {
+      cancelFullScreen.call(doc);
+    }
+  }
+}
+
+fullscreenBtn.addEventListener("click", toggleFullScreen);
+fullscreenBtn.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  toggleFullScreen();
+});
 
 // Cihaz Seçimi
 document.getElementById("btn-pc").addEventListener("click", () => startGame(false));
@@ -54,9 +80,7 @@ const player = {
   attackTimer: 0
 };
 
-// Joystick Vektörleri
 let joystickVector = { x: 0, y: 0 };
-
 const camera = { x: 0, y: 0 };
 let trees = [];
 let rocks = [];
@@ -66,7 +90,7 @@ let base = null;
 let gameTick = 0;
 let isNight = false;
 
-// Klavye Kontrolleri (PC)
+// Klavye Kontrolleri
 const keys = {};
 window.addEventListener("keydown", (e) => {
   keys[e.key.toLowerCase()] = true;
@@ -87,7 +111,7 @@ canvas.addEventListener("mousedown", () => {
 function setupJoystick() {
   const zone = document.getElementById("joystick-zone");
   const knob = document.getElementById("joystick-knob");
-  const maxRadius = 45; // Maksimum esneme mesafesi
+  const maxRadius = 45;
   let touchId = null;
   let centerX = 0;
   let centerY = 0;
@@ -104,7 +128,6 @@ function setupJoystick() {
 
     knob.style.transform = `translate(${knobX}px, ${knobY}px)`;
 
-    // Oyuncuya giden hız oranı (-1 ile 1 arası)
     joystickVector.x = knobX / maxRadius;
     joystickVector.y = knobY / maxRadius;
 
@@ -147,7 +170,6 @@ function setupJoystick() {
   window.addEventListener("touchend", endJoystick);
   window.addEventListener("touchcancel", endJoystick);
 
-  // Mobil Aksiyon Butonları
   document.getElementById("btn-attack").addEventListener("touchstart", (e) => {
     e.preventDefault();
     if (!isDead) attack();
@@ -158,7 +180,6 @@ function setupJoystick() {
   });
 }
 
-// Saldırı Eylemi
 function attack() {
   if (player.isAttacking) return;
   player.isAttacking = true;
@@ -239,30 +260,25 @@ function isInsideBase(target) {
   );
 }
 
-// Oyuncu Hareketi (Klavye + Mobil Joystick Hibrit)
 function updatePlayer() {
   if (isDead) return;
 
   let moveX = 0;
   let moveY = 0;
 
-  // Klavye kontrolü
   if (keys["w"] || keys["arrowup"]) moveY -= 1;
   if (keys["s"] || keys["arrowdown"]) moveY += 1;
   if (keys["a"] || keys["arrowleft"]) { moveX -= 1; player.facing = -1; }
   if (keys["d"] || keys["arrowright"]) { moveX += 1; player.facing = 1; }
 
-  // Mobil Joystick ekleme
   if (isMobile) {
     moveX += joystickVector.x;
     moveY += joystickVector.y;
   }
 
-  // Hareketi uygula
   player.x += moveX * player.speed;
   player.y += moveY * player.speed;
 
-  // Harita sınırları
   player.x = Math.max(player.size, Math.min(WORLD_WIDTH - player.size, player.x));
   player.y = Math.max(player.size, Math.min(WORLD_HEIGHT - player.size, player.y));
 
@@ -554,7 +570,6 @@ function render() {
   }
 }
 
-// Mobilde ekrana dokunarak dirilme
 window.addEventListener("touchstart", (e) => {
   if (isDead) {
     e.preventDefault();
