@@ -15,7 +15,7 @@
       <p>Nasıl oynamak istiyorsun?</p>
       <div class="modal-buttons">
         <button id="btn-pc" class="choice-btn">💻 Bilgisayar (Klavye)</button>
-        <button id="btn-mobile" class="choice-btn">📱 Mobil (Dokunmatik)</button>
+        <button id="btn-mobile" class="choice-btn">📱 Mobil (Joystick)</button>
       </div>
     </div>
   </div>
@@ -38,19 +38,19 @@
       Hareket: <b>W,A,S,D</b> | Saldır: <b>BOŞLUK / Tık</b> | Üs Kur: <b>B</b> (10 Odun, 5 Taş)
     </div>
 
-    <!-- Mobil Dokunmatik Kontroller -->
-    <div id="mobile-controls" class="hidden">
-      <div class="d-pad">
-        <button id="btn-up" class="touch-btn">▲</button>
-        <div class="d-pad-row">
-          <button id="btn-left" class="touch-btn">◀</button>
-          <button id="btn-down" class="touch-btn">▼</button>
-          <button id="btn-right" class="touch-btn">▶</button>
+    <!-- Mobil Arayüz Katmanı (Joystick + Aksiyon Butonları) -->
+    <div id="mobile-overlay" class="hidden">
+      <!-- Sol Alt: Dokunmatik Joystick Alanı -->
+      <div id="joystick-zone">
+        <div id="joystick-base">
+          <div id="joystick-knob"></div>
         </div>
       </div>
-      <div class="action-pad" style="display: flex; gap: 8px;">
-        <button id="btn-attack" class="action-btn" style="background: #c0392b;">⚔️ Saldır</button>
-        <button id="btn-build" class="action-btn">🏠 Üs</button>
+
+      <!-- Sağ Alt: Aksiyon Butonları -->
+      <div id="action-zone">
+        <button id="btn-attack" class="touch-action-btn attack-btn">⚔️</button>
+        <button id="btn-build" class="touch-action-btn build-btn">🏠</button>
       </div>
     </div>
   </div>
