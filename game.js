@@ -13,7 +13,7 @@ const minimapCanvas = document.getElementById("minimapCanvas");
 const mctx = minimapCanvas.getContext("2d");
 
 // ==========================================
-// HARİTA ÖLÇÜLERİ
+// HARİTA ÖLÇÜLERİ (1. HARİTA DOKUNULMADI)
 // ==========================================
 let currentMap = 1; // 1: Orman / Doğa, 2: Cehennem
 let WORLD_WIDTH = 4400;
@@ -71,7 +71,7 @@ const commentsContainer = document.getElementById("comments-container");
 const btnPlayAgain = document.getElementById("btn-play-again");
 
 // ==========================================
-// BAŞARIMLAR (1. VE 2. HARİTA)
+// BAŞARIM LİSTELERİ
 // ==========================================
 const MAP1_ACHIEVEMENTS = [
   "1. Gün: Hayat Adamı (Kurtlar Yakında!)",
@@ -86,21 +86,20 @@ const MAP1_ACHIEVEMENTS = [
   "10. Gün: KIZINI KURTARDIN! Cehennem Kapısı Açıldı!"
 ];
 
-const MAP2_ACHIEVEMENTS = [
-  "1. Gün: Cehenneme Ayak Bastın!",
-  "2. Gün: Maden Avcısı (Altın & Demir)",
-  "3. Gün: Kıyamet Yaklaşıyor",
-  "4. Gün: Ateş ve Kül Ustası",
-  "5. Gün: Fırtına Öncesi Sessizlik",
-  "6. Gün: DİKKAT! Zehirli Yılan İstilası!",
-  "7. Gün: Yılanların Zehrine Direniş",
-  "8. Gün: Kurtuluş! İMAN TAŞI Belirdi!",
-  "9. Gün: Kutsal Zırh ve Silahlar",
-  "10. Gün: Cehennem Lordunun Ayak Sesleri",
-  "11. Gün: BÜYÜK BOSS SAVAŞI & ZAFER!"
-];
+// Map 2: 30 Günlük Destansı Akış
+const MAP2_ACHIEVEMENTS_MAP = {
+  1: "1. Gün: Cehenneme Ayak Bastın! (Gün Sıfırlandı)",
+  3: "3. Gün: Maden Toplayıcısı (Bakır & Gümüş)",
+  6: "6. Gün: DİKKAT! Zehirli Yılan İstilası!",
+  8: "8. Gün: Yılanların Zehrine Direniş!",
+  12: "12. Gün: Ağır Madenler (Demir & Altın)",
+  15: "15. Gün: Cehennem Zırhları Kuşanıldı!",
+  20: "20. Gün: KUTSAL İMAN TAŞI GÖKTEN DÜŞTÜ!",
+  25: "25. Gün: Büyük Kıyamet Yaklaşıyor...",
+  30: "30. Gün: BÜYÜK BOSS SAVAŞI & EBEDİ KURTULUŞ!"
+};
 
-// Statik Göller ve Girilemeyen Antik Yapılar
+// 1. Harita Gölleri ve Kalıntıları
 const lakes = [
   { x: 1050, y: 950, rx: 240, ry: 170 },
   { x: 3250, y: 2250, rx: 280, ry: 200 },
@@ -113,6 +112,7 @@ const ruins = [
   { type: "altar", x: 2200, y: 2400, w: 110, h: 110 }
 ];
 
+// 2. Harita Lav Gölleri
 const lavaLakes = [
   { x: 1200, y: 1100, rx: 320, ry: 220 },
   { x: 3800, y: 2400, rx: 360, ry: 240 },
@@ -172,15 +172,15 @@ function bakeGround1() {
 bakeGround1();
 
 function bakeGround2() {
-  gctx2.fillStyle = "#1a0805";
+  gctx2.fillStyle = "#160704";
   gctx2.fillRect(0, 0, 5200, 3800);
 
-  for (let i = 0; i < 1200; i++) {
+  for (let i = 0; i < 1400; i++) {
     const gx = Math.random() * (5200 - 60) + 30;
     const gy = Math.random() * (3800 - 60) + 30;
     const type = Math.floor(Math.random() * 3);
     const size = Math.random() * 3.5 + 2;
-    gctx2.fillStyle = type === 0 ? "#e74c3c" : (type === 1 ? "#d35400" : "#f39c12");
+    gctx2.fillStyle = type === 0 ? "#c0392b" : (type === 1 ? "#d35400" : "#f39c12");
     gctx2.beginPath();
     gctx2.arc(gx, gy, size, 0, Math.PI * 2);
     gctx2.fill();
@@ -212,7 +212,7 @@ function bakeGround2() {
 bakeGround2();
 
 // ==========================================
-// SES MOTORU & GERİLİM MÜZİĞİ
+// SES MOTORU & AMBİYANS
 // ==========================================
 let audioCtx = null;
 let nightMusicTimer = null;
@@ -568,7 +568,7 @@ let hellGate = null;
 let imanStone = null;
 let hellBoss = null;
 
-const CYCLE_DURATION = 3600;
+const CYCLE_DURATION = 3600; // 60 sn
 let cycleTicks = 0;
 let dayCount = 1;
 let isNight = false;
@@ -577,7 +577,7 @@ let joystickVector = { x: 0, y: 0 };
 const camera = { x: 0, y: 0 };
 
 // ==========================================
-// HİKAYE BALONLARI
+// HİKAYE VE DİYALOGLAR
 // ==========================================
 function showDialogue(speaker, text, avatar = "🧙‍♂️") {
   dialogueSpeaker.innerText = speaker;
@@ -599,30 +599,37 @@ function checkStoryDialogues() {
     }
   } else if (currentMap === 2) {
     if (dayCount === 1 && cycleTicks === 60) {
-      showDialogue("Cehennem İnzivası", `Cehennem Diyarına Hoş Geldin! Burada canın 300'dür ancak geceleri canın yenilenmez, sadece sabahları dolar. Altın ve demir toplayarak zırh ve silah yap. 6. gün zehirli yılanlar istila edecek!`, "🔥");
+      showDialogue("Cehennem İnzivası", `Cehennem Diyarına Hoş Geldin! Günün sıfırlandı. Burada canın 300'dür ancak geceleri dolmaz, sabahları tam fullenir. 15 gün boyunca boss gelmeyecek; altın, demir, gümüş ve bakır toplayıp zırh döv!`, "🔥");
     } else if (dayCount === 6 && cycleTicks === 60) {
-      showDialogue("İç Ses", "DİKKAT! Zehirli cehennem yılanları yaklaşıyor! Seni ısırırlarsa zehir saniyelerce canını yakar. 8. güne kadar hayatta kal!", "🐍");
-    } else if (dayCount === 8 && cycleTicks === 60) {
-      showDialogue("Kutsal Ses", "Yılan istilası bitti! Haritanın ortasında İMAN TAŞI belirdi. Onu sadece Demir Kazma kırabilir. Kırınca ilahi güce kavuşacaksın!", "✨");
-    } else if (dayCount === 11 && cycleTicks === 60) {
-      showDialogue("Cehennem Lordu", "Kızını benden asla alamayacaksın ölümlü! Gel ve cehennemin gerçek alevleriyle tanış!", "👹");
+      showDialogue("İç Ses", "DİKKAT! Zehirli cehennem yılanları istilaya başladı! Seni ısırırlarsa zehir saniyelerce canını yakar. 8. güne kadar hayatta kal!", "🐍");
+    } else if (dayCount === 20 && cycleTicks === 60) {
+      showDialogue("Kutsal Ses", "GÖKTEN KUTSAL İMAN TAŞI DÜŞTÜ! Haritanın tam ortasında parıldıyor. Onu sadece 'Üst Düzey Demir Kazma' kırabilir. 30. günde gelecek Boss için o güce muhtaçsın!", "✨");
+    } else if (dayCount === 30 && cycleTicks === 60) {
+      showDialogue("Cehennem Lordu", "30 gün dayandın ve İman Taşı'nın gücünü aldın... Şimdi bu cehennemin gerçek hakimiyle yüzleş!", "👹");
     }
   }
 }
 
-function triggerAchievement(index) {
-  const list = currentMap === 1 ? MAP1_ACHIEVEMENTS : MAP2_ACHIEVEMENTS;
-  if (index >= list.length) return;
-  achDesc.innerText = list[index];
-  achBanner.classList.remove("hidden");
-  SFX.achievement();
-  setTimeout(() => {
-    achBanner.classList.add("hidden");
-  }, 4500);
+function triggerAchievementByDay(d) {
+  if (currentMap === 1) {
+    if (d <= MAP1_ACHIEVEMENTS.length) {
+      achDesc.innerText = MAP1_ACHIEVEMENTS[d - 1];
+      achBanner.classList.remove("hidden");
+      SFX.achievement();
+      setTimeout(() => achBanner.classList.add("hidden"), 4500);
+    }
+  } else {
+    if (MAP2_ACHIEVEMENTS_MAP[d]) {
+      achDesc.innerText = MAP2_ACHIEVEMENTS_MAP[d];
+      achBanner.classList.remove("hidden");
+      SFX.achievement();
+      setTimeout(() => achBanner.classList.add("hidden"), 4500);
+    }
+  }
 }
 
 // ==========================================
-// CEHENNEM HARİTASINA GEÇİŞ
+// 1. HARİTADAN 2. HARİTAYA GEÇİŞ (GÜN SIFIRLANIR)
 // ==========================================
 function transitionToHellMap() {
   currentMap = 2;
@@ -644,25 +651,30 @@ function transitionToHellMap() {
   player.x = 2600;
   player.y = 1900;
 
+  // GÜN SIFIRLANDI!
   dayCount = 1;
   cycleTicks = 0;
   isNight = false;
   base = null;
   escapePortal = null;
   hellGate = null;
+  imanStone = null;
+  hellBoss = null;
   monsters = [];
   meats = [];
   trees = [];
   rocks = [];
   ores = [];
 
+  // Cehennem Madenlerini Dağıt
   for (let i = 0; i < 90; i++) spawnOre("copper");
   for (let i = 0; i < 75; i++) spawnOre("silver");
   for (let i = 0; i < 60; i++) spawnOre("iron");
   for (let i = 0; i < 45; i++) spawnOre("gold");
 
   SFX.portalHum();
-  triggerAchievement(0);
+  triggerAchievementByDay(1);
+  dayEl.innerText = `${dayCount}/30 Gün`;
   updateUI();
 }
 
@@ -676,7 +688,7 @@ function spawnOre(type) {
       type: type,
       x: x,
       y: y,
-      size: 22,
+      size: 24,
       hp: 100,
       maxHp: 100,
       shake: 0
@@ -685,7 +697,6 @@ function spawnOre(type) {
   }
 }
 
-// Göl ve Lav Çarpışma Kontrolü
 function isCollidingWithLakes(x, y, padding = 15) {
   for (let l of lakes) {
     const dx = (x - l.x) / (l.rx + padding);
@@ -820,7 +831,7 @@ document.getElementById("craft-pick-btn").addEventListener("click", () => {
 });
 
 // ==========================================
-// GİRİŞ VE CİHAZ YÖNETİMİ
+// CİHAZ VE GİRİŞ KONTROLLERİ
 // ==========================================
 let welcomeTriggered = false;
 function triggerWelcome() {
@@ -917,7 +928,7 @@ function startGame(device) {
 
   resetGame(true);
   gameRunning = true;
-  triggerAchievement(0);
+  triggerAchievementByDay(1);
   requestAnimationFrame(gameLoop);
 }
 
@@ -1050,13 +1061,13 @@ function attackOrGather() {
       if (escapePortal.hp <= 0) {
         escapePortal.broken = true;
         hellGate = { x: WORLD_WIDTH - 180, y: WORLD_HEIGHT / 2, size: 70 };
-        showDialogue("Kızın", "Baba başardın! Ama cehennem lordu ruhumu çekiyor! Haritanın en sağındaki geçide koş!", "👧");
+        showDialogue("Kızın", "Baba başardın! Ama cehennem lordu ruhumu çekiyor! Haritanın en sağındaki Cehennem Geçidine koş!", "👧");
         SFX.victory();
       }
     }
   }
 
-  // 2. Harita İMAN TAŞI
+  // 2. Harita İMAN TAŞI (20. Gün Düşer)
   if (currentMap === 2 && imanStone && !imanStone.broken) {
     let idist = Math.hypot(imanStone.x - player.x, imanStone.y - player.y);
     if (idist < reach + 50) {
@@ -1073,7 +1084,7 @@ function attackOrGather() {
           TOOLS[0].monsterDmg = 180;
           TOOLS[0].name = "✨ Kutsal İman Kılıcı";
           SFX.imanPower();
-          showDialogue("İlahi Nur", "İMAN TAŞI PARÇALANDI! Zırhların ve silahların ilahi güce kavuştu, canın 1000'e çıktı! Artık Cehennem Lordu ile yüzleşmeye hazırsın!", "🌟");
+          showDialogue("İlahi Nur", "İMAN TAŞI PARÇALANDI! Zırhların ve silahların ilahi güce kavuştu, canın 1000'e çıktı! 30. gün gelecek Boss için artık hazırsın!", "🌟");
         }
       } else {
         alert("Bu kutsal taşı sadece 'Üst Düzey Demir Kazma' kırabilir! Demir toplayıp atölyede üret!");
@@ -1081,7 +1092,7 @@ function attackOrGather() {
     }
   }
 
-  // 2. Harita BOSS
+  // 2. Harita BOSS (30. Gün Savaşı)
   if (currentMap === 2 && hellBoss && hellBoss.hp > 0) {
     let bdist = Math.hypot(hellBoss.x - player.x, hellBoss.y - player.y);
     if (bdist < reach + hellBoss.size) {
@@ -1100,7 +1111,7 @@ function attackOrGather() {
     }
   }
 
-  // Madenler (Map 2)
+  // Cehennem Madenlerini Kırma (Bakır, Gümüş, Demir, Altın)
   if (!hit && currentMap === 2) {
     for (let i = ores.length - 1; i >= 0; i--) {
       let o = ores[i];
@@ -1183,7 +1194,7 @@ function attackOrGather() {
 }
 
 // ==========================================
-// SPAWN VE ÇAKIŞMA ÖNLEYİCİ SİSTEM
+// SPAWN VE AYRI TUTMA SİSTEMİ
 // ==========================================
 const MIN_SEPARATION = 95;
 
@@ -1242,13 +1253,12 @@ function spawnRock() {
   }
 }
 
-// ========================================================
-// YENİLENMİŞ CANAVAR SAYISI (GÜN GEÇTİKÇE ÇOĞALAN SÜRÜ)
-// ========================================================
+// ==========================================
+// CANAVAR DOĞUŞLARI
+// ==========================================
 function spawnNightMonsters() {
   if (currentMap === 1) {
     let monsterType = "wolf";
-    // Gün geçtikçe artan yoğun canavar sayısı (1. gün 10 başlar, 10. gün 40'a ulaşır)
     let count = 8 + dayCount * 3;
     let baseSpeed = 2.4;
     let baseHp = 70;
@@ -1267,7 +1277,7 @@ function spawnNightMonsters() {
 
     for (let i = 0; i < count; i++) {
       let spawnAngle = Math.random() * Math.PI * 2;
-      let spawnDist = 650 + Math.random() * 350; // Asla evin dibinde doğmaz
+      let spawnDist = 650 + Math.random() * 350;
       monsters.push({
         type: monsterType,
         x: player.x + Math.cos(spawnAngle) * spawnDist,
@@ -1283,9 +1293,9 @@ function spawnNightMonsters() {
       });
     }
   } else if (currentMap === 2) {
-    // 2. Harita: Cehennem Yaratıkları & 6-8. Gün Büyük Yılan İstilası
+    // 2. Harita: 15 Gün Boss Yok, 6-8. Gün Yılan İstilası
     let isSnakeDay = dayCount >= 6 && dayCount <= 8;
-    let count = isSnakeDay ? (20 + dayCount * 3) : (12 + dayCount * 2);
+    let count = isSnakeDay ? (18 + dayCount * 2) : (10 + Math.floor(dayCount * 1.5));
 
     for (let i = 0; i < count; i++) {
       let spawnAngle = Math.random() * Math.PI * 2;
@@ -1309,23 +1319,21 @@ function spawnNightMonsters() {
   }
 }
 
+// 30. GÜN BOSS'U (Cehennem Lordu)
 function spawnHellBoss() {
   hellBoss = {
     x: WORLD_WIDTH / 2,
     y: WORLD_HEIGHT / 2 - 100,
-    size: 70,
-    hp: 3500,
-    maxHp: 3500,
-    speed: 2.2,
+    size: 75,
+    hp: 4000,
+    maxHp: 4000,
+    speed: 2.3,
     shake: 0,
     attackCooldown: 0
   };
   SFX.nightWarning();
 }
 
-// ========================================================
-// EV FİZİĞİ: CANAVARLARIN ASLA İÇERİ GİREMEMESİ (AABB RESOLVE)
-// ========================================================
 function resolveBaseCollision(m) {
   if (!base || base.hp <= 0) return;
 
@@ -1334,9 +1342,7 @@ function resolveBaseCollision(m) {
   const minY = base.y - m.size;
   const maxY = base.y + base.size + m.size;
 
-  // Canavar evin kutusunun içinde mi?
   if (m.x > minX && m.x < maxX && m.y > minY && m.y < maxY) {
-    // En yakın duvara geri it
     const distLeft = m.x - minX;
     const distRight = maxX - m.x;
     const distTop = m.y - minY;
@@ -1348,7 +1354,6 @@ function resolveBaseCollision(m) {
     else if (minDist === distTop) m.y = minY;
     else m.y = maxY;
 
-    // Yaratık sadece dış duvarlara vurabilir
     base.hp -= 0.12;
     if (base.hp <= 0) {
       base.hp = 0;
@@ -1358,7 +1363,7 @@ function resolveBaseCollision(m) {
 }
 
 // ==========================================
-// DÜNYA VE ÇARPIŞMA GÜNCELLEMELERİ
+// DÜNYA VE DÖNGÜ GÜNCELLEMELERİ
 // ==========================================
 function handleWorld() {
   if (isDead || gameWon) return;
@@ -1409,16 +1414,18 @@ function handleWorld() {
     } else {
       stopNightTensionMusic();
       dayCount++;
-      dayEl.innerText = `${dayCount}. Gün`;
+      dayEl.innerText = currentMap === 1 ? `${dayCount}/10 Gün` : `${dayCount}/30 Gün`;
       monsters = [];
 
+      // Cehennem kuralı: Gece dolmaz, sabah tam fullenir
       if (currentMap === 2) {
         player.health = player.maxHealth;
         player.isPoisoned = false;
       }
 
-      triggerAchievement(dayCount - 1);
+      triggerAchievementByDay(dayCount);
 
+      // 1. Harita 10. Gün Portalı
       if (currentMap === 1 && dayCount === 10) {
         escapePortal = {
           x: WORLD_WIDTH / 2,
@@ -1430,7 +1437,8 @@ function handleWorld() {
         };
       }
 
-      if (currentMap === 2 && dayCount === 8) {
+      // 2. Harita 20. Gün İMAN TAŞI Düşüşü (2000 HP)
+      if (currentMap === 2 && dayCount === 20) {
         imanStone = {
           x: WORLD_WIDTH / 2,
           y: WORLD_HEIGHT / 2,
@@ -1439,9 +1447,11 @@ function handleWorld() {
           shake: 0,
           broken: false
         };
+        SFX.portalHum();
       }
 
-      if (currentMap === 2 && dayCount === 11) {
+      // 2. Harita 30. Gün BOSS Savaşı
+      if (currentMap === 2 && dayCount === 30) {
         spawnHellBoss();
       }
 
@@ -1474,7 +1484,6 @@ function handleWorld() {
 
   const playerSafe = isInsideBase(player);
 
-  // Canavarların birbirini itmesi ve duvara çarpmalarını çözme
   for (let i = 0; i < monsters.length; i++) {
     for (let j = i + 1; j < monsters.length; j++) {
       let m1 = monsters[i];
@@ -1491,7 +1500,6 @@ function handleWorld() {
         m2.y += Math.sin(angle) * overlap;
       }
     }
-    // İtme sonrası evin içine sızmaları kesinlikle engellenir
     resolveBaseCollision(monsters[i]);
   }
 
@@ -1516,7 +1524,6 @@ function handleWorld() {
       let targetX = player.x;
       let targetY = player.y;
       if (playerSafe && base) {
-        // Oyuncu evdeyse yaratıklar evin merkezine koşar ve duvarlara takılır
         targetX = base.x + base.size / 2;
         targetY = base.y + base.size / 2;
       }
@@ -1534,10 +1541,8 @@ function handleWorld() {
     m.x += Math.cos(moveAngle) * currentSpeed;
     m.y += Math.sin(moveAngle) * currentSpeed;
 
-    // Duvar çarpışmasını tekrar zorla
     resolveBaseCollision(m);
 
-    // Oyuncuya Hasar: OYUNCU EVİN İÇİNDEYSE HASAR ALMASI İMKANSIZDIR!
     if (!playerSafe && m.isChasing) {
       let dist = Math.hypot(player.x - m.x, player.y - m.y);
       if (dist < player.size + m.size) {
@@ -1582,9 +1587,9 @@ function resetGame(forceFirstDay = false) {
   gameWon = false;
 
   if (currentMap === 2) {
-    if (dayCount >= 11 || player.isBlessed) {
-      dayCount = 8;
-      player.health = player.maxHealth;
+    // 2. Haritada 30. gün Boss gününde ölürse İman Taşı'nı kırdığı 20. güne gider
+    if (dayCount >= 30 || player.isBlessed) {
+      dayCount = 20;
       player.isBlessed = true;
       player.maxHealth = 1000;
       player.health = 1000;
@@ -1594,7 +1599,9 @@ function resetGame(forceFirstDay = false) {
       player.maxHealth = 300;
       player.health = 300;
     }
+    dayEl.innerText = `${dayCount}/30 Gün`;
   } else {
+    // 1. Harita Checkpoint'i
     if (dayCount >= 5 && !forceFirstDay) {
       dayCount = 5;
     } else {
@@ -1602,6 +1609,7 @@ function resetGame(forceFirstDay = false) {
     }
     player.maxHealth = 100;
     player.health = 100;
+    dayEl.innerText = `${dayCount}/10 Gün`;
   }
 
   player.x = WORLD_WIDTH / 2;
@@ -1624,8 +1632,7 @@ function resetGame(forceFirstDay = false) {
     for (let i = 0; i < 65; i++) spawnRock();
   }
 
-  dayEl.innerText = `${dayCount}. Gün`;
-  triggerAchievement(dayCount - 1);
+  triggerAchievementByDay(dayCount);
   updateUI();
 }
 
@@ -1653,7 +1660,6 @@ function buildOrRepairBase() {
   }
 }
 
-// Oyuncunun evin içinde olup olmadığını garantileyen toleranslı kontrol
 function isInsideBase(target) {
   if (!base || base.hp <= 0) return false;
   const pad = 12;
@@ -1665,7 +1671,6 @@ function isInsideBase(target) {
   );
 }
 
-// OYUNCU HAREKETİ VE GÖL/LAV ENGELİ
 function updatePlayer() {
   if (isDead || gameWon) return;
 
@@ -1707,7 +1712,6 @@ function updatePlayer() {
     if (player.attackTimer <= 0) player.isAttacking = false;
   }
 
-  // Evin içindeyken hızlı can dolumu
   if (isInsideBase(player) && player.health < player.maxHealth) {
     player.health = Math.min(player.maxHealth, player.health + 0.25);
     updateUI();
@@ -1797,10 +1801,10 @@ function escapeHtml(text) {
 }
 
 // ==========================================
-// DETAYLI ÇİZİMLER (AĞAÇ, TAŞ, GELİŞMİŞ EV)
+// 1. VE 2. HARİTA DETAYLI ÇİZİMLERİ
 // ==========================================
 
-// ORGANİK, KÖKLÜ VE CAN BARLI AĞAÇ
+// 1. HARİTA: KÖKLÜ, GÖLGELİ VE CAN BARLI AĞAÇ (DOKUNULMADI)
 function drawTree(t) {
   let shakeOffset = 0;
   if (t.shake > 0) {
@@ -1811,7 +1815,6 @@ function drawTree(t) {
   const px = t.x + shakeOffset;
   const py = t.y;
 
-  // Hasar Aldığında Üstte Can Barı
   if (t.hp < t.maxHp) {
     ctx.fillStyle = "rgba(0,0,0,0.75)";
     ctx.fillRect(px - 24, py - 70, 48, 6);
@@ -1819,13 +1822,11 @@ function drawTree(t) {
     ctx.fillRect(px - 24, py - 70, (48 * t.hp) / t.maxHp, 6);
   }
 
-  // Zemin Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
   ctx.beginPath();
   ctx.ellipse(px, py + 30, 36, 12, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Kökler ve Kalın Gövde
   ctx.fillStyle = "#4a2912";
   ctx.beginPath();
   ctx.moveTo(px - 10, py - 12);
@@ -1837,7 +1838,6 @@ function drawTree(t) {
   ctx.lineTo(px + 10, py - 12);
   ctx.fill();
 
-  // Gövde Çizgileri ve Dallanma
   ctx.strokeStyle = "#321a08";
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -1847,7 +1847,6 @@ function drawTree(t) {
   ctx.moveTo(px + 6, py - 10); ctx.lineTo(px + 16, py - 26);
   ctx.stroke();
 
-  // 4 Katmanlı Canlı Yaprak Kümeleri
   const c1 = t.leafVariation === 0 ? "#145a32" : (t.leafVariation === 1 ? "#196f3d" : "#0e4d26");
   const c2 = t.leafVariation === 0 ? "#1e8449" : (t.leafVariation === 1 ? "#27ae60" : "#177538");
   const c3 = t.leafVariation === 0 ? "#2ecc71" : (t.leafVariation === 1 ? "#58d68d" : "#28b463");
@@ -1874,7 +1873,7 @@ function drawTree(t) {
   ctx.fill();
 }
 
-// ÇOKGEN, FASETLİ VE CAN BARLI KAYA
+// 1. HARİTA: ÇOKGEN VE CAN BARLI KAYA (DOKUNULMADI)
 function drawRock(r) {
   let shakeOffset = 0;
   if (r.shake > 0) {
@@ -1885,7 +1884,6 @@ function drawRock(r) {
   const px = r.x + shakeOffset;
   const py = r.y;
 
-  // Hasar Aldığında Üstte Can Barı
   if (r.hp < r.maxHp) {
     ctx.fillStyle = "rgba(0,0,0,0.75)";
     ctx.fillRect(px - 20, py - 34, 40, 5);
@@ -1901,7 +1899,6 @@ function drawRock(r) {
   ctx.save();
   ctx.translate(px, py);
 
-  // Koyu Taban
   ctx.fillStyle = "#424949";
   ctx.beginPath();
   ctx.moveTo(r.points[0].x, r.points[0].y);
@@ -1911,7 +1908,6 @@ function drawRock(r) {
   ctx.closePath();
   ctx.fill();
 
-  // Açık Gri Üst Faset
   ctx.fillStyle = "#7f8c8d";
   ctx.beginPath();
   ctx.moveTo(r.points[1].x, r.points[1].y);
@@ -1919,7 +1915,6 @@ function drawRock(r) {
   ctx.lineTo(0, 0);
   ctx.fill();
 
-  // Alt Koyu Faset
   ctx.fillStyle = "#2c3e50";
   ctx.beginPath();
   ctx.moveTo(r.points[4].x, r.points[4].y);
@@ -1927,12 +1922,88 @@ function drawRock(r) {
   ctx.lineTo(0, 0);
   ctx.fill();
 
-  // Maden Damarı
   ctx.strokeStyle = "#17202a";
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(-4, -4); ctx.lineTo(2, 3); ctx.lineTo(7, 0);
   ctx.stroke();
+
+  ctx.restore();
+}
+
+// 2. HARİTA: GELİŞMİŞ, PARLAK VE BELİRGİN MADENLER (ALTIN, DEMİR, GÜMÜŞ, BAKIR)
+function drawOre(o) {
+  let shakeOffset = (Math.random() - 0.5) * o.shake;
+  if (o.shake > 0) o.shake--;
+
+  const px = o.x + shakeOffset;
+  const py = o.y;
+
+  // Maden Can Barı
+  if (o.hp < o.maxHp) {
+    ctx.fillStyle = "rgba(0,0,0,0.85)";
+    ctx.fillRect(px - 22, py - 36, 44, 6);
+    ctx.fillStyle = "#f39c12";
+    ctx.fillRect(px - 22, py - 36, (44 * o.hp) / o.maxHp, 6);
+  }
+
+  // Zemin Gölgesi
+  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+  ctx.beginPath();
+  ctx.ellipse(px, py + 16, 26, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.save();
+  ctx.translate(px, py);
+
+  // Koyu Obsidyen Ana Kaya Gövdesi
+  ctx.fillStyle = "#1c110d";
+  ctx.beginPath();
+  ctx.moveTo(-18, 12);
+  ctx.lineTo(-22, -8);
+  ctx.lineTo(-6, -24);
+  ctx.lineTo(16, -18);
+  ctx.lineTo(24, 6);
+  ctx.lineTo(6, 22);
+  ctx.closePath();
+  ctx.fill();
+
+  // Maden Türüne Göre Parlayan Kristal Damarlar
+  let primaryColor = "#d35400";
+  let glowColor = "#e67e22";
+  let nameTag = "Bakır";
+
+  if (o.type === "silver") {
+    primaryColor = "#bdc3c7";
+    glowColor = "#ffffff";
+    nameTag = "Gümüş";
+  } else if (o.type === "iron") {
+    primaryColor = "#7f8c8d";
+    glowColor = "#95a5a6";
+    nameTag = "Demir";
+  } else if (o.type === "gold") {
+    primaryColor = "#f1c40f";
+    glowColor = "#f39c12";
+    nameTag = "Altın";
+  }
+
+  // Kristal Fasetler
+  ctx.fillStyle = primaryColor;
+  ctx.beginPath();
+  ctx.moveTo(-12, -4); ctx.lineTo(-4, -16); ctx.lineTo(6, -8); ctx.lineTo(-2, 4);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = glowColor;
+  ctx.beginPath();
+  ctx.moveTo(2, -10); ctx.lineTo(14, -6); ctx.lineTo(10, 6); ctx.lineTo(0, 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // Işıltı Pırıltısı
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(-6, -12, 3, 3);
+  ctx.fillRect(8, -4, 2.5, 2.5);
 
   ctx.restore();
 }
@@ -2033,23 +2104,23 @@ function drawImanStone(st) {
   const px = st.x + shakeOffset;
   const py = st.y;
 
-  ctx.fillStyle = "rgba(0,0,0,0.7)";
-  ctx.fillRect(px - 50, py - 90, 100, 10);
+  ctx.fillStyle = "rgba(0,0,0,0.8)";
+  ctx.fillRect(px - 55, py - 95, 110, 12);
   ctx.fillStyle = "#f1c40f";
-  ctx.fillRect(px - 50, py - 90, (100 * st.hp) / st.maxHp, 10);
+  ctx.fillRect(px - 55, py - 95, (110 * st.hp) / st.maxHp, 12);
 
   ctx.fillStyle = "#fff";
   ctx.font = "bold 13px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(`KUTSAL İMAN TAŞI (${st.hp}/${st.maxHp})`, px, py - 100);
+  ctx.fillText(`KUTSAL İMAN TAŞI (${st.hp}/${st.maxHp})`, px, py - 105);
 
   ctx.shadowColor = "#f1c40f";
-  ctx.shadowBlur = 20;
+  ctx.shadowBlur = 24;
   ctx.fillStyle = "#f39c12";
   ctx.beginPath();
-  ctx.moveTo(px, py - 70);
-  ctx.lineTo(px + 35, py + 20);
-  ctx.lineTo(px - 35, py + 20);
+  ctx.moveTo(px, py - 80);
+  ctx.lineTo(px + 40, py + 25);
+  ctx.lineTo(px - 40, py + 25);
   ctx.closePath();
   ctx.fill();
   ctx.shadowBlur = 0;
@@ -2059,15 +2130,15 @@ function drawHellBoss(b) {
   ctx.save();
   ctx.translate(b.x, b.y);
 
-  ctx.fillStyle = "rgba(0,0,0,0.8)";
-  ctx.fillRect(-60, -90, 120, 12);
+  ctx.fillStyle = "rgba(0,0,0,0.85)";
+  ctx.fillRect(-65, -95, 130, 12);
   ctx.fillStyle = "#c0392b";
-  ctx.fillRect(-60, -90, (120 * b.hp) / b.maxHp, 12);
+  ctx.fillRect(-65, -95, (130 * b.hp) / b.maxHp, 12);
 
   ctx.fillStyle = "#fff";
   ctx.font = "bold 14px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(`CEHENNEM LORDU (${b.hp}/${b.maxHp})`, 0, -105);
+  ctx.fillText(`CEHENNEM LORDU (${b.hp}/${b.maxHp})`, 0, -110);
 
   ctx.fillStyle = "#780000";
   ctx.beginPath();
@@ -2076,14 +2147,14 @@ function drawHellBoss(b) {
 
   ctx.fillStyle = "#e67e22";
   ctx.beginPath();
-  ctx.moveTo(-25, -40); ctx.lineTo(-45, -85); ctx.lineTo(-10, -55); ctx.fill();
+  ctx.moveTo(-28, -45); ctx.lineTo(-50, -95); ctx.lineTo(-12, -60); ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(25, -40); ctx.lineTo(45, -85); ctx.lineTo(10, -55); ctx.fill();
+  ctx.moveTo(28, -45); ctx.lineTo(50, -95); ctx.lineTo(12, -60); ctx.fill();
 
   ctx.fillStyle = "#f1c40f";
   ctx.beginPath();
-  ctx.arc(-18, -15, 10, 0, Math.PI * 2);
-  ctx.arc(18, -15, 10, 0, Math.PI * 2);
+  ctx.arc(-20, -18, 11, 0, Math.PI * 2);
+  ctx.arc(20, -18, 11, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.restore();
@@ -2186,42 +2257,6 @@ function drawHellGate(g) {
   ctx.restore();
 }
 
-function drawOre(o) {
-  let shakeOffset = (Math.random() - 0.5) * o.shake;
-  if (o.shake > 0) o.shake--;
-
-  const px = o.x + shakeOffset;
-  const py = o.y;
-
-  if (o.hp < o.maxHp) {
-    ctx.fillStyle = "rgba(0,0,0,0.75)";
-    ctx.fillRect(px - 18, py - 30, 36, 5);
-    ctx.fillStyle = "#f39c12";
-    ctx.fillRect(px - 18, py - 30, (36 * o.hp) / o.maxHp, 5);
-  }
-
-  ctx.save();
-  ctx.translate(px, py);
-
-  ctx.fillStyle = "#2c1e19";
-  ctx.beginPath();
-  ctx.arc(0, 0, o.size, 0, Math.PI * 2);
-  ctx.fill();
-
-  let oreColor = "#d35400";
-  if (o.type === "silver") oreColor = "#bdc3c7";
-  if (o.type === "iron") oreColor = "#7f8c8d";
-  if (o.type === "gold") oreColor = "#f1c40f";
-
-  ctx.fillStyle = oreColor;
-  ctx.beginPath();
-  ctx.arc(-4, -4, 6, 0, Math.PI * 2);
-  ctx.arc(5, 3, 5, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.restore();
-}
-
 function drawPortal(p) {
   let shakeOffset = 0;
   if (p.shake > 0) {
@@ -2259,15 +2294,12 @@ function drawPortal(p) {
   ctx.fillRect(px - 6, py - 21, 12, 16);
 }
 
-// ==========================================
-// EV (SIĞINAK) VE BÜYÜK BELİRGİN CAN BARI
-// ==========================================
+// EV VE BELİRGİN CAN BARI
 function drawBaseStructure(b) {
   const bx = b.x;
   const by = b.y;
   const bs = b.size;
 
-  // Çatının Üstünde Devasa ve Belirgin Can Barı
   const barY = by - 56;
   ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
   ctx.fillRect(bx - 10, barY, bs + 20, 12);
@@ -2279,7 +2311,6 @@ function drawBaseStructure(b) {
   ctx.fillStyle = hpRatio > 0.4 ? "#2ecc71" : "#e74c3c";
   ctx.fillRect(bx - 9, barY + 1, (bs + 18) * hpRatio, 10);
 
-  // Can Değeri Yazısı
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 12px sans-serif";
   ctx.textAlign = "center";
@@ -2288,7 +2319,6 @@ function drawBaseStructure(b) {
   ctx.fillText(`🏠 Sığınak Canı: ${Math.floor(b.hp)} / ${b.maxHp}`, bx + bs / 2, barY - 6);
   ctx.shadowBlur = 0;
 
-  // Ev Gövdesi ve Çatı
   ctx.fillStyle = "rgba(0,0,0,0.38)";
   ctx.fillRect(bx - 12, by + bs - 6, bs + 24, 22);
 
