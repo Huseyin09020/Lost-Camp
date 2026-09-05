@@ -1,14 +1,21 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-canvas.width = 800;
-canvas.height = 500;
+
+// Ekran Tuvalini Dinamik Olarak Boyutlandır
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
 
 // Mini Harita
 const minimapCanvas = document.getElementById("minimapCanvas");
 const mctx = minimapCanvas.getContext("2d");
 
-const WORLD_WIDTH = 3200;
-const WORLD_HEIGHT = 2400;
+// DAHA DA BÜYÜK HARİTA (3600 x 2600)
+const WORLD_WIDTH = 3600;
+const WORLD_HEIGHT = 2600;
 
 // UI Elementleri
 const healthEl = document.getElementById("health-val");
@@ -24,7 +31,7 @@ const fullscreenBtn = document.getElementById("btn-fullscreen");
 const toolCycleBtn = document.getElementById("btn-tool-cycle");
 const playerNameInput = document.getElementById("player-name-input");
 
-// Web Audio API Synthesizer (Gelişmiş Ses Motoru)
+// Ses Motoru
 let audioCtx = null;
 function initAudio() {
   if (!audioCtx) {
@@ -36,15 +43,14 @@ function initAudio() {
 }
 
 const SFX = {
-  // Kılıç savurma
   slash: () => {
     if (!audioCtx) return;
     try {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(480, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.08);
+      osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.08);
       gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
       osc.connect(gain);
@@ -53,17 +59,15 @@ const SFX = {
       osc.stop(audioCtx.currentTime + 0.08);
     } catch(e) {}
   },
-
-  // 1. Ağaca Baltayla Vurma (Tok Kütük Sesi)
   chopWood: () => {
     if (!audioCtx) return;
     try {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "square";
-      osc.frequency.setValueAtTime(110, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(45, audioCtx.currentTime + 0.09);
-      gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.09);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.09);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
@@ -71,17 +75,15 @@ const SFX = {
       osc.stop(audioCtx.currentTime + 0.09);
     } catch(e) {}
   },
-
-  // 2. Taşa Kazmayla Vurma (Tiz Maden Çınlaması & Taş Sesi)
   mineRock: () => {
     if (!audioCtx) return;
     try {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(750, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(240, audioCtx.currentTime + 0.11);
-      gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(820, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(260, audioCtx.currentTime + 0.11);
+      gain.gain.setValueAtTime(0.16, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.11);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
@@ -89,17 +91,15 @@ const SFX = {
       osc.stop(audioCtx.currentTime + 0.11);
     } catch(e) {}
   },
-
-  // Canavara Darbe Vuruşu
   hitMonster: () => {
     if (!audioCtx) return;
     try {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "triangle";
-      osc.frequency.setValueAtTime(240, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.12);
-      gain.gain.setValueAtTime(0.22, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(260, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.24, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
@@ -107,8 +107,6 @@ const SFX = {
       osc.stop(audioCtx.currentTime + 0.12);
     } catch(e) {}
   },
-
-  // Kaynak / Et Toplama
   pickup: () => {
     if (!audioCtx) return;
     try {
@@ -116,7 +114,7 @@ const SFX = {
       const gain = audioCtx.createGain();
       osc.type = "sine";
       osc.frequency.setValueAtTime(620, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(960, audioCtx.currentTime + 0.09);
+      osc.frequency.exponentialRampToValueAtTime(980, audioCtx.currentTime + 0.09);
       gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.09);
       osc.connect(gain);
@@ -125,8 +123,6 @@ const SFX = {
       osc.stop(audioCtx.currentTime + 0.09);
     } catch(e) {}
   },
-
-  // Üs İnşa Sesi
   build: () => {
     if (!audioCtx) return;
     try {
@@ -144,16 +140,14 @@ const SFX = {
       });
     } catch(e) {}
   },
-
-  // Gece Gerilim Sesi
   night: () => {
     if (!audioCtx) return;
     try {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(160, audioCtx.currentTime);
-      osc.frequency.linearRampToValueAtTime(75, audioCtx.currentTime + 0.8);
+      osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(70, audioCtx.currentTime + 0.8);
       gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
       osc.connect(gain);
@@ -165,21 +159,18 @@ const SFX = {
 };
 
 let highScore = parseInt(localStorage.getItem("survival_high_day") || "1");
-let currentDevice = "pc"; // 'pc', 'android', 'ios'
+let currentDevice = "pc";
 let gameRunning = false;
 let isDead = false;
 
-// Evrensel ve Cihaza Özel Tam Ekran
+// Tam Ekran Kontrolü
 function toggleFullScreen() {
   initAudio();
   if (currentDevice === "ios") {
-    // iPhone Safari Çözümü: Web Sayfasını Görünüm Alanına Tam Kilitler
     document.body.classList.toggle("ios-fullscreen");
     window.scrollTo(0, 1);
     return;
   }
-
-  // Android & PC Standart API
   const elem = document.documentElement;
   if (!document.fullscreenElement && !document.webkitFullscreenElement) {
     if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
@@ -195,41 +186,7 @@ fullscreenBtn.addEventListener("touchstart", (e) => {
   toggleFullScreen();
 });
 
-// Cihaz Seçim Butonları
-document.getElementById("btn-pc").addEventListener("click", () => startGame("pc"));
-document.getElementById("btn-android").addEventListener("click", () => startGame("android"));
-document.getElementById("btn-ios").addEventListener("click", () => startGame("ios"));
-
-function startGame(device) {
-  initAudio();
-  currentDevice = device;
-
-  // İsim Ayarı
-  const inputName = playerNameInput.value.trim();
-  player.name = inputName.length > 0 ? inputName : "Savaşçı";
-
-  deviceModal.classList.add("hidden");
-  gameContainer.classList.remove("hidden");
-
-  if (device === "android" || device === "ios") {
-    mobileOverlay.classList.remove("hidden");
-    pcControls.classList.add("hidden");
-    setupMobileControls();
-
-    if (device === "ios") {
-      document.body.classList.add("ios-fullscreen");
-      window.scrollTo(0, 1);
-    } else {
-      toggleFullScreen();
-    }
-  }
-
-  resetGame();
-  gameRunning = true;
-  requestAnimationFrame(gameLoop);
-}
-
-// 3 Alet
+// Aletler
 const TOOLS = [
   { name: "⚔️ Kılıç", btnIcon: "⚔️", monsterDmg: 45, treeDmg: 8, rockDmg: 5 },
   { name: "🪓 Balta", btnIcon: "🪓", monsterDmg: 12, treeDmg: 45, rockDmg: 5 },
@@ -241,7 +198,7 @@ const player = {
   x: WORLD_WIDTH / 2,
   y: WORLD_HEIGHT / 2,
   size: 22,
-  speed: 4.8,
+  speed: 5.2,
   health: 100,
   maxHealth: 100,
   wood: 0,
@@ -275,13 +232,52 @@ let monsters = [];
 let meats = [];
 let base = null;
 
-// Geri Sayım Döngüsü (30 saniye)
 const CYCLE_DURATION = 1800;
 let cycleTicks = 0;
 let dayCount = 1;
 let isNight = false;
 
-// Klavye Kontrolleri
+// CİHAZ SEÇİMİ VE OYUN BAŞLATMA (Hata Korumalı)
+function startGame(device) {
+  initAudio();
+  currentDevice = device;
+
+  const inputName = playerNameInput.value.trim();
+  player.name = inputName.length > 0 ? inputName : "Savaşçı";
+
+  // Menüyü anında gizle ve oyun alanını aç
+  deviceModal.style.display = "none";
+  deviceModal.classList.add("hidden");
+  gameContainer.classList.remove("hidden");
+
+  resizeCanvas();
+
+  if (device === "android" || device === "ios") {
+    mobileOverlay.classList.remove("hidden");
+    pcControls.classList.add("hidden");
+    setupMobileControls();
+
+    if (device === "ios") {
+      document.body.classList.add("ios-fullscreen");
+      window.scrollTo(0, 1);
+    } else {
+      toggleFullScreen();
+    }
+  } else {
+    mobileOverlay.classList.add("hidden");
+    pcControls.classList.remove("hidden");
+  }
+
+  resetGame();
+  gameRunning = true;
+  requestAnimationFrame(gameLoop);
+}
+
+document.getElementById("btn-pc").addEventListener("click", () => startGame("pc"));
+document.getElementById("btn-android").addEventListener("click", () => startGame("android"));
+document.getElementById("btn-ios").addEventListener("click", () => startGame("ios"));
+
+// Klavye Dinleyicisi
 const keys = {};
 window.addEventListener("keydown", (e) => {
   initAudio();
@@ -377,16 +373,17 @@ function setupMobileControls() {
   });
 }
 
+// Saldırı ve Kırma
 function attackOrGather() {
   if (player.isAttacking) return;
   player.isAttacking = true;
   player.attackTimer = 12;
 
   const tool = TOOLS[player.activeToolIndex];
-  const reach = 80;
+  const reach = 85;
   let hit = false;
 
-  // Ağaç Vuruşu
+  // Ağaç
   for (let i = trees.length - 1; i >= 0; i--) {
     let t = trees[i];
     let dist = Math.hypot(t.x - player.x, t.y - player.y);
@@ -404,7 +401,7 @@ function attackOrGather() {
     }
   }
 
-  // Taş Vuruşu
+  // Taş
   if (!hit) {
     for (let i = rocks.length - 1; i >= 0; i--) {
       let r = rocks[i];
@@ -424,15 +421,15 @@ function attackOrGather() {
     }
   }
 
-  // Canavar Vuruşu
+  // Canavar
   monsters.forEach(m => {
     let dx = m.x - player.x;
     let dy = m.y - player.y;
     let dist = Math.hypot(dx, dy);
     let inFront = (player.facing === 1 && dx > -15) || (player.facing === -1 && dx < 15);
-    if (dist < reach + 12 && inFront) {
+    if (dist < reach + 14 && inFront) {
       m.health -= tool.monsterDmg;
-      m.x += player.facing * 38;
+      m.x += player.facing * 40;
       hit = true;
       SFX.hitMonster();
     }
@@ -444,9 +441,9 @@ function attackOrGather() {
 
 function spawnTree() {
   trees.push({
-    x: Math.random() * (WORLD_WIDTH - 160) + 80,
-    y: Math.random() * (WORLD_HEIGHT - 160) + 80,
-    size: 36,
+    x: Math.random() * (WORLD_WIDTH - 200) + 100,
+    y: Math.random() * (WORLD_HEIGHT - 200) + 100,
+    size: 38,
     hp: 100,
     maxHp: 100,
     shake: 0,
@@ -456,9 +453,9 @@ function spawnTree() {
 
 function spawnRock() {
   rocks.push({
-    x: Math.random() * (WORLD_WIDTH - 160) + 80,
-    y: Math.random() * (WORLD_HEIGHT - 160) + 80,
-    size: 26,
+    x: Math.random() * (WORLD_WIDTH - 200) + 100,
+    y: Math.random() * (WORLD_HEIGHT - 200) + 100,
+    size: 28,
     hp: 100,
     maxHp: 100,
     shake: 0,
@@ -470,6 +467,7 @@ function spawnRock() {
 }
 
 function resetGame() {
+  resizeCanvas();
   player.x = WORLD_WIDTH / 2;
   player.y = WORLD_HEIGHT / 2;
   player.health = 100;
@@ -489,11 +487,15 @@ function resetGame() {
 
   trees = [];
   rocks = [];
-  for (let i = 0; i < 80; i++) spawnTree();
-  for (let i = 0; i < 45; i++) spawnRock();
+  for (let i = 0; i < 90; i++) spawnTree();
+  for (let i = 0; i < 50; i++) spawnRock();
 
   toolCycleBtn.innerText = TOOLS[0].name;
   document.getElementById("btn-attack").innerText = TOOLS[0].btnIcon;
+
+  camera.x = player.x - canvas.width / 2;
+  camera.y = player.y - canvas.height / 2;
+
   updateUI();
 }
 
@@ -502,7 +504,7 @@ function buildBase() {
   if (player.wood >= 10 && player.stone >= 5) {
     player.wood -= 10;
     player.stone -= 5;
-    base = { x: player.x - 65, y: player.y - 65, size: 130 };
+    base = { x: player.x - 70, y: player.y - 70, size: 140 };
     SFX.build();
     updateUI();
   }
@@ -598,14 +600,14 @@ function handleWorld() {
       const count = 5 + dayCount * 2;
       for (let i = 0; i < count; i++) {
         let spawnAngle = Math.random() * Math.PI * 2;
-        let spawnDist = 480 + Math.random() * 250;
+        let spawnDist = 500 + Math.random() * 250;
         monsters.push({
           x: player.x + Math.cos(spawnAngle) * spawnDist,
           y: player.y + Math.sin(spawnAngle) * spawnDist,
           size: 24,
-          speed: 2.2 + dayCount * 0.12,
-          health: 75 + dayCount * 12,
-          maxHealth: 75 + dayCount * 12,
+          speed: 2.3 + dayCount * 0.12,
+          health: 80 + dayCount * 12,
+          maxHealth: 80 + dayCount * 12,
           animOffset: Math.random() * 10
         });
       }
@@ -674,7 +676,7 @@ function updateUI() {
 }
 
 // ==========================================
-// ÇİZİMLER (KARAKTER İSMİ EKLENDİ)
+// ÇİZİMLER
 // ==========================================
 
 function drawPlayer(x, y) {
@@ -683,24 +685,22 @@ function drawPlayer(x, y) {
 
   const bob = Math.sin(player.walkCycle) * 2;
 
-  // 1. Karakterin Kafasının Üstündeki İsim
+  // İsim ve Can Barı
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 12px sans-serif";
+  ctx.font = "bold 13px sans-serif";
   ctx.textAlign = "center";
-  ctx.shadowColor = "rgba(0,0,0,0.8)";
-  ctx.shadowBlur = 4;
+  ctx.shadowColor = "rgba(0,0,0,0.9)";
+  ctx.shadowBlur = 5;
   ctx.fillText(player.name, 0, -36 + bob);
   ctx.shadowBlur = 0;
 
-  // Mini Can Çizgisi
-  ctx.fillStyle = "rgba(0,0,0,0.5)";
-  ctx.fillRect(-16, -32 + bob, 32, 4);
+  ctx.fillStyle = "rgba(0,0,0,0.6)";
+  ctx.fillRect(-18, -31 + bob, 36, 4);
   ctx.fillStyle = "#2ecc71";
-  ctx.fillRect(-16, -32 + bob, (32 * player.health) / player.maxHealth, 4);
+  ctx.fillRect(-18, -31 + bob, (36 * player.health) / player.maxHealth, 4);
 
   if (player.facing === -1) ctx.scale(-1, 1);
 
-  // Saldırı Efekti
   if (player.isAttacking) {
     ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
     ctx.lineWidth = 5;
@@ -714,25 +714,23 @@ function drawPlayer(x, y) {
   ctx.fillRect(-8, 10 + bob, 6, 8);
   ctx.fillRect(2, 10 - bob, 6, 8);
 
-  // Gövde Zırhı
+  // Gövde
   ctx.fillStyle = "#2471a3";
   ctx.fillRect(-10, -10 + bob, 20, 22);
   ctx.fillStyle = "#1b4f72";
   ctx.fillRect(-10, -2 + bob, 20, 4);
 
-  // Kafa
+  // Kafa & Miğfer
   ctx.fillStyle = "#f5cba7";
   ctx.beginPath();
   ctx.arc(0, -20 + bob, 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // Miğfer
   ctx.fillStyle = "#566573";
   ctx.beginPath();
   ctx.arc(0, -23 + bob, 11, Math.PI, Math.PI * 2);
   ctx.fill();
 
-  // Göz
   ctx.fillStyle = "#2c3e50";
   ctx.fillRect(3, -22 + bob, 3, 3);
 
@@ -742,15 +740,13 @@ function drawPlayer(x, y) {
   if (player.isAttacking) ctx.rotate(0.6);
 
   if (player.activeToolIndex === 0) {
-    // Kılıç
     ctx.fillStyle = "#ecf0f1";
-    ctx.fillRect(0, -3, 20, 5);
+    ctx.fillRect(0, -3, 22, 5);
     ctx.fillStyle = "#d4ac0d";
     ctx.fillRect(-2, -6, 4, 11);
     ctx.fillStyle = "#784212";
     ctx.fillRect(-6, -2, 4, 4);
   } else if (player.activeToolIndex === 1) {
-    // Balta
     ctx.fillStyle = "#784212";
     ctx.fillRect(-4, -2, 18, 4);
     ctx.fillStyle = "#bdc3c7";
@@ -758,7 +754,6 @@ function drawPlayer(x, y) {
     ctx.fillStyle = "#7f8c8d";
     ctx.fillRect(8, -6, 3, 12);
   } else {
-    // Kazma
     ctx.fillStyle = "#784212";
     ctx.fillRect(-4, -2, 18, 4);
     ctx.fillStyle = "#95a5a6";
@@ -791,7 +786,7 @@ function drawMonster(m) {
   ctx.arc(0, 0, 14, 0, Math.PI * 2);
   ctx.fill();
 
-  // Sivri Boynuzlar
+  // Boynuzlar
   ctx.fillStyle = "#2c0404";
   ctx.beginPath();
   ctx.moveTo(-10, -12); ctx.lineTo(-18, -24); ctx.lineTo(-4, -16); ctx.fill();
@@ -804,11 +799,7 @@ function drawMonster(m) {
   ctx.arc(-5, -4, 4, 0, Math.PI * 2);
   ctx.arc(5, -4, 4, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(-4, -5, 2, 2);
-  ctx.fillRect(6, -5, 2, 2);
 
-  // Sivri Dişler
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
   ctx.moveTo(-7, 4); ctx.lineTo(-4, 10); ctx.lineTo(-1, 4);
@@ -852,18 +843,18 @@ function drawTree(t) {
 
   ctx.fillStyle = leafColor1;
   ctx.beginPath();
-  ctx.arc(px, py - 4, 30, 0, Math.PI * 2);
+  ctx.arc(px, py - 4, 32, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.fillStyle = leafColor2;
   ctx.beginPath();
-  ctx.arc(px - 8, py - 14, 22, 0, Math.PI * 2);
-  ctx.arc(px + 8, py - 14, 22, 0, Math.PI * 2);
+  ctx.arc(px - 8, py - 14, 24, 0, Math.PI * 2);
+  ctx.arc(px + 8, py - 14, 24, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
   ctx.beginPath();
-  ctx.arc(px - 4, py - 20, 12, 0, Math.PI * 2);
+  ctx.arc(px - 4, py - 20, 14, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -963,12 +954,12 @@ function render() {
   ctx.fillStyle = isNight ? "#0d1a0d" : "#2f561d";
   ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  ctx.strokeStyle = isNight ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.05)";
+  ctx.strokeStyle = isNight ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.06)";
   ctx.lineWidth = 2;
-  for (let x = 0; x < WORLD_WIDTH; x += 120) {
+  for (let x = 0; x < WORLD_WIDTH; x += 140) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_HEIGHT); ctx.stroke();
   }
-  for (let y = 0; y < WORLD_HEIGHT; y += 120) {
+  for (let y = 0; y < WORLD_HEIGHT; y += 140) {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke();
   }
 
