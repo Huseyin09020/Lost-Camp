@@ -1,7 +1,6 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Ekran Tuvalini Boyutlandır
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -29,21 +28,33 @@ const pcControls = document.getElementById("pc-controls");
 const fullscreenBtn = document.getElementById("btn-fullscreen");
 const toolCycleBtn = document.getElementById("btn-tool-cycle");
 const playerNameInput = document.getElementById("player-name-input");
+const achBanner = document.getElementById("achievement-banner");
+const achDesc = document.getElementById("ach-desc");
 
-// ==========================================
-// 1. OPTİMİZASYON: PERFORMANS ZEMİN ÖNBELLEĞİ (OFF-SCREEN)
-// ==========================================
+// 10 Günlük Başarım Başlıkları
+const ACHIEVEMENTS = [
+  "1. Gün: Hayat Adamı (İlk Adım)",
+  "2. Gün: Zorluklara Göğüs Germek",
+  "3. Gün: Vahşi Doğanın Ustası",
+  "4. Gün: Karanlığın Avcısı",
+  "5. Gün: Yarı Yolu Devirdik!",
+  "6. Gün: Yıkılmaz İrade",
+  "7. Gün: Çelik Bilek",
+  "8. Gün: Umut Işığı",
+  "9. Gün: Sonun Başlangıcı",
+  "10. Gün: KIZINI KURTAR VE KAÇ!"
+];
+
+// Zemin Önbelleği (Ultra Hızlı FPS)
 const groundCanvas = document.createElement("canvas");
 groundCanvas.width = WORLD_WIDTH;
 groundCanvas.height = WORLD_HEIGHT;
 const gctx = groundCanvas.getContext("2d");
 
 function bakeGround() {
-  // Temel Zemin
   gctx.fillStyle = "#2d521c";
   gctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  // Doğal Çimen ve Çiçekler
   for (let i = 0; i < 600; i++) {
     const gx = Math.random() * (WORLD_WIDTH - 60) + 30;
     const gy = Math.random() * (WORLD_HEIGHT - 60) + 30;
@@ -68,7 +79,6 @@ function bakeGround() {
     }
   }
 
-  // Izgara Çizgileri
   gctx.strokeStyle = "rgba(0,0,0,0.04)";
   gctx.lineWidth = 2;
   for (let x = 0; x < WORLD_WIDTH; x += 140) {
@@ -78,24 +88,17 @@ function bakeGround() {
     gctx.beginPath(); gctx.moveTo(0, y); gctx.lineTo(WORLD_WIDTH, y); gctx.stroke();
   }
 
-  // Sınır Çizgisi
   gctx.strokeStyle = "#c0392b";
   gctx.lineWidth = 8;
   gctx.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 }
 bakeGround();
 
-// ==========================================
-// SES MOTORU (iOS & Android Uyumlu)
-// ==========================================
+// Ses Motoru
 let audioCtx = null;
 function initAudio() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume();
-  }
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === "suspended") audioCtx.resume();
 }
 
 function createNoiseBuffer() {
@@ -103,9 +106,7 @@ function createNoiseBuffer() {
   const bufferSize = audioCtx.sampleRate * 0.1;
   const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
   const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = Math.random() * 2 - 1;
-  }
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
   return buffer;
 }
 
@@ -134,14 +135,12 @@ const SFX = {
       const noiseGain = audioCtx.createGain();
       noiseGain.gain.setValueAtTime(0.18, now);
       noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
-
       noise.connect(filter);
       filter.connect(noiseGain);
       noiseGain.connect(audioCtx.destination);
       noise.start(now);
     } catch(e) {}
   },
-
   mineRock: () => {
     initAudio();
     try {
@@ -171,7 +170,6 @@ const SFX = {
       oscLow.stop(now + 0.09);
     } catch(e) {}
   },
-
   slash: () => {
     initAudio();
     try {
@@ -189,7 +187,6 @@ const SFX = {
       osc.stop(now + 0.08);
     } catch(e) {}
   },
-
   hitMonster: () => {
     initAudio();
     try {
@@ -207,7 +204,6 @@ const SFX = {
       osc.stop(now + 0.11);
     } catch(e) {}
   },
-
   pickup: () => {
     initAudio();
     try {
@@ -225,7 +221,40 @@ const SFX = {
       osc.stop(now + 0.09);
     } catch(e) {}
   },
-
+  achievement: () => {
+    initAudio();
+    try {
+      [440, 554, 659, 880].forEach((f, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(f, audioCtx.currentTime + idx * 0.08);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime + idx * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.08 + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + idx * 0.08);
+        osc.stop(audioCtx.currentTime + idx * 0.08 + 0.2);
+      });
+    } catch(e) {}
+  },
+  victory: () => {
+    initAudio();
+    try {
+      [523, 659, 784, 1046].forEach((f, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(f, audioCtx.currentTime + idx * 0.12);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime + idx * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.12 + 0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + idx * 0.12);
+        osc.stop(audioCtx.currentTime + idx * 0.12 + 0.4);
+      });
+    } catch(e) {}
+  },
   build: () => {
     initAudio();
     try {
@@ -243,7 +272,6 @@ const SFX = {
       });
     } catch(e) {}
   },
-
   night: () => {
     initAudio();
     try {
@@ -262,10 +290,27 @@ const SFX = {
   }
 };
 
-let highScore = parseInt(localStorage.getItem("survival_high_day") || "1");
 let currentDevice = "pc";
 let gameRunning = false;
 let isDead = false;
+let gameWon = false;
+
+// Cinsiyet Seçimi
+let selectedGender = "male";
+const genderMaleBtn = document.getElementById("gender-male");
+const genderFemaleBtn = document.getElementById("gender-female");
+
+genderMaleBtn.addEventListener("click", () => {
+  selectedGender = "male";
+  genderMaleBtn.classList.add("active-gender");
+  genderFemaleBtn.classList.remove("active-gender");
+});
+
+genderFemaleBtn.addEventListener("click", () => {
+  selectedGender = "female";
+  genderFemaleBtn.classList.add("active-gender");
+  genderMaleBtn.classList.remove("active-gender");
+});
 
 function toggleFullScreen() {
   initAudio();
@@ -297,6 +342,7 @@ const TOOLS = [
 
 const player = {
   name: "Savaşçı",
+  gender: "male",
   x: WORLD_WIDTH / 2,
   y: WORLD_HEIGHT / 2,
   size: 22,
@@ -333,21 +379,37 @@ let rocks = [];
 let monsters = [];
 let meats = [];
 let base = null;
+let escapePortal = null;
 
-const CYCLE_DURATION = 1800;
+const CYCLE_DURATION = 1800; // 30 saniye
 let cycleTicks = 0;
 let dayCount = 1;
 let isNight = false;
 
+function triggerAchievement(index) {
+  if (index >= ACHIEVEMENTS.length) return;
+  achDesc.innerText = ACHIEVEMENTS[index];
+  achBanner.classList.remove("hidden");
+  SFX.achievement();
+  setTimeout(() => {
+    achBanner.classList.add("hidden");
+  }, 4000);
+}
+
+// CİHAZ SEÇİMİ VE OYUN BAŞLATMA (Hatasız Kilit Çözücü)
 function startGame(device) {
+  if (gameRunning) return;
   initAudio();
   currentDevice = device;
 
   const inputName = playerNameInput.value.trim();
   player.name = inputName.length > 0 ? inputName : "Savaşçı";
+  player.gender = selectedGender;
 
+  // Menüyü anında kaldır ve oyun alanını aç
   deviceModal.style.display = "none";
   deviceModal.classList.add("hidden");
+  gameContainer.style.display = "block";
   gameContainer.classList.remove("hidden");
 
   resizeCanvas();
@@ -370,12 +432,21 @@ function startGame(device) {
 
   resetGame();
   gameRunning = true;
+  triggerAchievement(0);
   requestAnimationFrame(gameLoop);
 }
 
-document.getElementById("btn-pc").addEventListener("click", () => startGame("pc"));
-document.getElementById("btn-android").addEventListener("click", () => startGame("android"));
-document.getElementById("btn-ios").addEventListener("click", () => startGame("ios"));
+// Menü butonları için hem click hem touch desteği
+function bindStartButton(btnId, dev) {
+  const btn = document.getElementById(btnId);
+  btn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    startGame(dev);
+  });
+}
+bindStartButton("btn-pc", "pc");
+bindStartButton("btn-android", "android");
+bindStartButton("btn-ios", "ios");
 
 const keys = {};
 window.addEventListener("keydown", (e) => {
@@ -387,8 +458,8 @@ window.addEventListener("keydown", (e) => {
   if (k === "2") { player.activeToolIndex = 1; toolCycleBtn.innerText = TOOLS[1].name; }
   if (k === "3") { player.activeToolIndex = 2; toolCycleBtn.innerText = TOOLS[2].name; }
   if (k === "b") buildBase();
-  if (e.key === " " && !isDead) attackOrGather();
-  if (isDead && (e.key === "Enter" || e.key === " ")) resetGame();
+  if (e.key === " " && !isDead && !gameWon) attackOrGather();
+  if ((isDead || gameWon) && (e.key === "Enter" || e.key === " ")) resetGame();
 });
 window.addEventListener("keyup", (e) => {
   keys[e.key.toLowerCase()] = false;
@@ -396,7 +467,7 @@ window.addEventListener("keyup", (e) => {
 
 canvas.addEventListener("mousedown", () => {
   initAudio();
-  if (!isDead && gameRunning) attackOrGather();
+  if (!isDead && !gameWon && gameRunning) attackOrGather();
 });
 
 function setupMobileControls() {
@@ -480,21 +551,39 @@ function attackOrGather() {
   const reach = 85;
   let hit = false;
 
-  // Ağaç
-  for (let i = trees.length - 1; i >= 0; i--) {
-    let t = trees[i];
-    let dist = Math.hypot(t.x - player.x, t.y - player.y);
-    if (dist < reach + t.size / 2) {
-      t.hp -= tool.treeDmg;
-      t.shake = 6;
+  // 10. Gün Kapısını Kırma
+  if (escapePortal && !escapePortal.broken) {
+    let pdist = Math.hypot(escapePortal.x - player.x, escapePortal.y - player.y);
+    if (pdist < reach + 40) {
+      escapePortal.hp -= 25;
+      escapePortal.shake = 8;
       hit = true;
-      SFX.chopWood();
-      if (t.hp <= 0) {
-        trees.splice(i, 1);
-        player.wood += 4;
-        SFX.pickup();
+      SFX.mineRock();
+      if (escapePortal.hp <= 0) {
+        escapePortal.broken = true;
+        gameWon = true;
+        SFX.victory();
       }
-      break;
+    }
+  }
+
+  // Ağaç
+  if (!hit) {
+    for (let i = trees.length - 1; i >= 0; i--) {
+      let t = trees[i];
+      let dist = Math.hypot(t.x - player.x, t.y - player.y);
+      if (dist < reach + t.size / 2) {
+        t.hp -= tool.treeDmg;
+        t.shake = 6;
+        hit = true;
+        SFX.chopWood();
+        if (t.hp <= 0) {
+          trees.splice(i, 1);
+          player.wood += 4;
+          SFX.pickup();
+        }
+        break;
+      }
     }
   }
 
@@ -527,6 +616,7 @@ function attackOrGather() {
     if (dist < reach + 14 && inFront) {
       m.health -= tool.monsterDmg;
       m.x += player.facing * 40;
+      m.isChasing = true;
       hit = true;
       SFX.hitMonster();
     }
@@ -575,12 +665,14 @@ function resetGame() {
   player.attackTimer = 0;
   joystickVector = { x: 0, y: 0 };
   base = null;
+  escapePortal = null;
   monsters = [];
   meats = [];
   cycleTicks = 0;
   dayCount = 1;
   isNight = false;
   isDead = false;
+  gameWon = false;
 
   trees = [];
   rocks = [];
@@ -597,7 +689,7 @@ function resetGame() {
 }
 
 function buildBase() {
-  if (base || isDead) return;
+  if (base || isDead || gameWon) return;
   if (player.wood >= 10 && player.stone >= 5) {
     player.wood -= 10;
     player.stone -= 5;
@@ -618,7 +710,7 @@ function isInsideBase(target) {
 }
 
 function updatePlayer() {
-  if (isDead) return;
+  if (isDead || gameWon) return;
 
   let moveX = 0;
   let moveY = 0;
@@ -659,7 +751,7 @@ function updatePlayer() {
 }
 
 function checkMeatPickup() {
-  if (isDead) return;
+  if (isDead || gameWon) return;
   for (let i = meats.length - 1; i >= 0; i--) {
     let dist = Math.hypot(player.x - meats[i].x, player.y - meats[i].y);
     if (dist < player.size + meats[i].size) {
@@ -672,7 +764,7 @@ function checkMeatPickup() {
 }
 
 function handleWorld() {
-  if (isDead) return;
+  if (isDead || gameWon) return;
 
   cycleTicks++;
   const remainingTicks = CYCLE_DURATION - cycleTicks;
@@ -697,25 +789,39 @@ function handleWorld() {
       const count = 5 + dayCount * 2;
       for (let i = 0; i < count; i++) {
         let spawnAngle = Math.random() * Math.PI * 2;
-        let spawnDist = 500 + Math.random() * 250;
+        let spawnDist = 550 + Math.random() * 300;
         monsters.push({
           x: player.x + Math.cos(spawnAngle) * spawnDist,
           y: player.y + Math.sin(spawnAngle) * spawnDist,
           size: 24,
-          speed: 2.3 + dayCount * 0.12,
-          health: 80 + dayCount * 12,
-          maxHealth: 80 + dayCount * 12,
-          animOffset: Math.random() * 10
+          speed: 2.3 + dayCount * 0.1,
+          health: 80 + dayCount * 10,
+          maxHealth: 80 + dayCount * 10,
+          animOffset: Math.random() * 10,
+          isChasing: false,
+          wanderAngle: Math.random() * Math.PI * 2,
+          wanderTimer: 0
         });
       }
     } else {
       dayCount++;
-      dayEl.innerText = `${dayCount}. Gün`;
-      if (dayCount > highScore) {
-        highScore = dayCount;
-        localStorage.setItem("survival_high_day", highScore);
-      }
+      dayEl.innerText = `${dayCount}/10 Gün`;
       monsters = [];
+
+      triggerAchievement(dayCount - 1);
+
+      // 10. Gün Portalı
+      if (dayCount === 10) {
+        escapePortal = {
+          x: WORLD_WIDTH / 2,
+          y: WORLD_HEIGHT / 2,
+          hp: 150,
+          maxHp: 150,
+          shake: 0,
+          broken: false
+        };
+      }
+
       for (let i = 0; i < 20; i++) spawnTree();
       for (let i = 0; i < 10; i++) spawnRock();
     }
@@ -723,9 +829,7 @@ function handleWorld() {
 
   const playerSafe = isInsideBase(player);
 
-  // ==========================================
-  // 2. OPTİMİZASYON: CANAVAR SÜRÜ ÇARPIŞMASI (STACKING ÖNLEYİCİ)
-  // ==========================================
+  // Canavarların birbirini itmesi
   for (let i = 0; i < monsters.length; i++) {
     for (let j = i + 1; j < monsters.length; j++) {
       let m1 = monsters[i];
@@ -744,6 +848,9 @@ function handleWorld() {
     }
   }
 
+  // Görüş Alanı (350px)
+  const DETECTION_RADIUS = 350;
+
   for (let i = monsters.length - 1; i >= 0; i--) {
     let m = monsters[i];
 
@@ -753,9 +860,28 @@ function handleWorld() {
       continue;
     }
 
-    let angle = Math.atan2(player.y - m.y, player.x - m.x);
-    let nextX = m.x + Math.cos(angle) * m.speed;
-    let nextY = m.y + Math.sin(angle) * m.speed;
+    let pDist = Math.hypot(player.x - m.x, player.y - m.y);
+    if (pDist < DETECTION_RADIUS && !playerSafe) {
+      m.isChasing = true;
+    }
+
+    let moveAngle;
+    let currentSpeed = m.speed;
+
+    if (m.isChasing && !playerSafe) {
+      moveAngle = Math.atan2(player.y - m.y, player.x - m.x);
+    } else {
+      m.wanderTimer--;
+      if (m.wanderTimer <= 0) {
+        m.wanderAngle = Math.random() * Math.PI * 2;
+        m.wanderTimer = 60 + Math.random() * 60;
+      }
+      moveAngle = m.wanderAngle;
+      currentSpeed = m.speed * 0.45;
+    }
+
+    let nextX = m.x + Math.cos(moveAngle) * currentSpeed;
+    let nextY = m.y + Math.sin(moveAngle) * currentSpeed;
 
     if (base) {
       let willEnterBase = (
@@ -773,7 +899,7 @@ function handleWorld() {
       m.y = nextY;
     }
 
-    if (!playerSafe) {
+    if (!playerSafe && m.isChasing) {
       let dist = Math.hypot(player.x - m.x, player.y - m.y);
       if (dist < player.size + m.size) {
         player.health -= 0.65;
@@ -793,16 +919,14 @@ function updateUI() {
   stoneEl.innerText = player.stone;
 }
 
-// ==========================================
-// ÇİZİMLER
-// ==========================================
-
+// Çizimler
 function drawPlayer(x, y) {
   ctx.save();
   ctx.translate(x, y);
 
   const bob = Math.sin(player.walkCycle) * 2;
 
+  // İsim ve Can
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 13px sans-serif";
   ctx.textAlign = "center";
@@ -826,28 +950,52 @@ function drawPlayer(x, y) {
     ctx.stroke();
   }
 
+  // Ayaklar
   ctx.fillStyle = "#1b2631";
   ctx.fillRect(-8, 10 + bob, 6, 8);
   ctx.fillRect(2, 10 - bob, 6, 8);
 
-  ctx.fillStyle = "#2471a3";
-  ctx.fillRect(-10, -10 + bob, 20, 22);
-  ctx.fillStyle = "#1b4f72";
-  ctx.fillRect(-10, -2 + bob, 20, 4);
+  if (player.gender === "male") {
+    // ERKEK: Mavi zırh & miğfer
+    ctx.fillStyle = "#2471a3";
+    ctx.fillRect(-10, -10 + bob, 20, 22);
+    ctx.fillStyle = "#1b4f72";
+    ctx.fillRect(-10, -2 + bob, 20, 4);
 
-  ctx.fillStyle = "#f5cba7";
-  ctx.beginPath();
-  ctx.arc(0, -20 + bob, 10, 0, Math.PI * 2);
-  ctx.fill();
+    ctx.fillStyle = "#f5cba7";
+    ctx.beginPath();
+    ctx.arc(0, -20 + bob, 10, 0, Math.PI * 2);
+    ctx.fill();
 
-  ctx.fillStyle = "#566573";
-  ctx.beginPath();
-  ctx.arc(0, -23 + bob, 11, Math.PI, Math.PI * 2);
-  ctx.fill();
+    ctx.fillStyle = "#566573";
+    ctx.beginPath();
+    ctx.arc(0, -23 + bob, 11, Math.PI, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // KADIN: Kızıl zırh & örgü saç
+    ctx.fillStyle = "#922b21";
+    ctx.fillRect(-9, -10 + bob, 18, 22);
+    ctx.fillStyle = "#d35400";
+    ctx.fillRect(-9, -2 + bob, 18, 4);
+
+    ctx.fillStyle = "#e67e22";
+    ctx.beginPath();
+    ctx.arc(-2, -20 + bob, 13, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#f5cba7";
+    ctx.beginPath();
+    ctx.arc(0, -20 + bob, 9, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#d35400";
+    ctx.fillRect(-14, -18 + bob, 6, 16);
+  }
 
   ctx.fillStyle = "#2c3e50";
   ctx.fillRect(3, -22 + bob, 3, 3);
 
+  // Alet
   ctx.save();
   ctx.translate(8, -4 + bob);
   if (player.isAttacking) ctx.rotate(0.6);
@@ -878,6 +1026,43 @@ function drawPlayer(x, y) {
   ctx.restore();
 }
 
+function drawPortal(p) {
+  let shakeOffset = 0;
+  if (p.shake > 0) {
+    shakeOffset = (Math.random() - 0.5) * p.shake;
+    p.shake--;
+  }
+
+  const px = p.x + shakeOffset;
+  const py = p.y;
+
+  ctx.fillStyle = "rgba(0,0,0,0.7)";
+  ctx.fillRect(px - 40, py - 85, 80, 8);
+  ctx.fillStyle = "#f1c40f";
+  ctx.fillRect(px - 40, py - 85, (80 * p.hp) / p.maxHp, 8);
+
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 12px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("KAPIYI KIR VE KIZINI KURTAR!", px, py - 95);
+
+  ctx.fillStyle = "#34495e";
+  ctx.fillRect(px - 36, py - 60, 72, 80);
+
+  const pulse = Math.sin(Date.now() * 0.006) * 5;
+  ctx.fillStyle = "rgba(142, 68, 173, 0.85)";
+  ctx.beginPath();
+  ctx.arc(px, py - 20, 26 + pulse, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#f1c40f";
+  ctx.beginPath();
+  ctx.arc(px, py - 28, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#e74c3c";
+  ctx.fillRect(px - 6, py - 21, 12, 16);
+}
+
 function drawMonster(m) {
   ctx.save();
   ctx.translate(m.x, m.y);
@@ -905,14 +1090,11 @@ function drawMonster(m) {
   ctx.beginPath();
   ctx.moveTo(10, -12); ctx.lineTo(18, -24); ctx.lineTo(4, -16); ctx.fill();
 
-  ctx.fillStyle = "#f39c12";
+  ctx.fillStyle = m.isChasing ? "#ff0000" : "#f39c12";
   ctx.beginPath();
   ctx.arc(-5, -4, 4, 0, Math.PI * 2);
   ctx.arc(5, -4, 4, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(-4, -5, 2, 2);
-  ctx.fillRect(6, -5, 2, 2);
 
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
@@ -1047,6 +1229,11 @@ function renderMinimap() {
     mctx.fillRect(base.x * scaleX, base.y * scaleY, 7, 7);
   }
 
+  if (escapePortal && !escapePortal.broken) {
+    mctx.fillStyle = "#f1c40f";
+    mctx.fillRect(escapePortal.x * scaleX - 3, escapePortal.y * scaleY - 3, 8, 8);
+  }
+
   mctx.fillStyle = "#e74c3c";
   monsters.forEach(m => {
     mctx.fillRect(m.x * scaleX, m.y * scaleY, 3, 3);
@@ -1064,10 +1251,8 @@ function render() {
   ctx.save();
   ctx.translate(-camera.x, -camera.y);
 
-  // Önbelleğe alınmış zemin görselini doğrudan bas (Ultra Hızlı FPS)
   ctx.drawImage(groundCanvas, 0, 0);
 
-  // Gece Işık Filtresi
   if (isNight) {
     ctx.fillStyle = "rgba(5, 12, 5, 0.65)";
     ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -1091,17 +1276,45 @@ function render() {
     ctx.fillRect(base.x, base.y, base.size, base.size);
   }
 
+  if (escapePortal && !escapePortal.broken) {
+    drawPortal(escapePortal);
+  }
+
   rocks.forEach(r => drawRock(r));
   trees.forEach(t => drawTree(t));
   meats.forEach(m => drawMeat(m.x, m.y));
 
-  if (!isDead) drawPlayer(player.x, player.y);
+  if (!isDead && !gameWon) drawPlayer(player.x, player.y);
   monsters.forEach(m => drawMonster(m));
 
   ctx.restore();
 
   renderMinimap();
 
+  // ZAFER EKRANI
+  if (gameWon) {
+    ctx.fillStyle = "rgba(10, 25, 10, 0.95)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "#f1c40f";
+    ctx.font = "bold 38px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("🎉 KIZINI KURTARDIN! 🎉", canvas.width / 2, canvas.height / 2 - 40);
+
+    ctx.fillStyle = "#2ecc71";
+    ctx.font = "bold 22px sans-serif";
+    ctx.fillText(`${player.name}, 10 Günlük Kabusu Sona Erdirdin!`, canvas.width / 2, canvas.height / 2 + 10);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "16px sans-serif";
+    ctx.fillText("Bu lanetli diyardan sağ salim kaçmayı başardınız.", canvas.width / 2, canvas.height / 2 + 45);
+
+    ctx.fillStyle = "#ecf0f1";
+    ctx.font = "14px sans-serif";
+    ctx.fillText(currentDevice !== "pc" ? "Yeniden oynamak için ekrana dokun" : "Yeniden oynamak için BOŞLUK veya ENTER'a bas", canvas.width / 2, canvas.height / 2 + 90);
+  }
+
+  // ÖLÜM EKRANI
   if (isDead) {
     ctx.fillStyle = "rgba(5, 10, 5, 0.9)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1113,7 +1326,7 @@ function render() {
 
     ctx.fillStyle = "#f1c40f";
     ctx.font = "bold 20px sans-serif";
-    ctx.fillText(`${dayCount}. Günde Elendin | En Yüksek: ${highScore}. Gün`, canvas.width / 2, canvas.height / 2 + 6);
+    ctx.fillText(`${dayCount}. Günde Elendin | Kızın Hâlâ Kurtarılmayı Bekliyor!`, canvas.width / 2, canvas.height / 2 + 6);
 
     ctx.fillStyle = "#ecf0f1";
     ctx.font = "15px sans-serif";
@@ -1123,7 +1336,7 @@ function render() {
 
 window.addEventListener("touchstart", (e) => {
   initAudio();
-  if (isDead) {
+  if (isDead || gameWon) {
     e.preventDefault();
     resetGame();
   }
