@@ -1,6 +1,7 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Ekran Tuvalini Boyutlandır
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -30,7 +31,62 @@ const toolCycleBtn = document.getElementById("btn-tool-cycle");
 const playerNameInput = document.getElementById("player-name-input");
 
 // ==========================================
-// GELİŞMİŞ VE GERÇEKÇİ SES MOTORU
+// 1. OPTİMİZASYON: PERFORMANS ZEMİN ÖNBELLEĞİ (OFF-SCREEN)
+// ==========================================
+const groundCanvas = document.createElement("canvas");
+groundCanvas.width = WORLD_WIDTH;
+groundCanvas.height = WORLD_HEIGHT;
+const gctx = groundCanvas.getContext("2d");
+
+function bakeGround() {
+  // Temel Zemin
+  gctx.fillStyle = "#2d521c";
+  gctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
+  // Doğal Çimen ve Çiçekler
+  for (let i = 0; i < 600; i++) {
+    const gx = Math.random() * (WORLD_WIDTH - 60) + 30;
+    const gy = Math.random() * (WORLD_HEIGHT - 60) + 30;
+    const type = Math.floor(Math.random() * 3);
+    const size = Math.random() * 4 + 4;
+
+    if (type === 0) {
+      gctx.fillStyle = "#224115";
+      gctx.beginPath();
+      gctx.arc(gx, gy, size, 0, Math.PI * 2);
+      gctx.fill();
+    } else if (type === 1) {
+      gctx.fillStyle = "#3b6827";
+      gctx.beginPath();
+      gctx.ellipse(gx, gy, size + 2, size - 1, Math.PI / 4, 0, Math.PI * 2);
+      gctx.fill();
+    } else {
+      gctx.fillStyle = "#f1c40f";
+      gctx.beginPath();
+      gctx.arc(gx, gy, 2.5, 0, Math.PI * 2);
+      gctx.fill();
+    }
+  }
+
+  // Izgara Çizgileri
+  gctx.strokeStyle = "rgba(0,0,0,0.04)";
+  gctx.lineWidth = 2;
+  for (let x = 0; x < WORLD_WIDTH; x += 140) {
+    gctx.beginPath(); gctx.moveTo(x, 0); gctx.lineTo(x, WORLD_HEIGHT); gctx.stroke();
+  }
+  for (let y = 0; y < WORLD_HEIGHT; y += 140) {
+    gctx.beginPath(); gctx.moveTo(0, y); gctx.lineTo(WORLD_WIDTH, y); gctx.stroke();
+  }
+
+  // Sınır Çizgisi
+  gctx.strokeStyle = "#c0392b";
+  gctx.lineWidth = 8;
+  gctx.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+}
+bakeGround();
+
+// ==========================================
+// SES MOTORU (iOS & Android Uyumlu)
 // ==========================================
 let audioCtx = null;
 function initAudio() {
@@ -42,7 +98,6 @@ function initAudio() {
   }
 }
 
-// Beyaz Gürültü Üretici (Odun kıymığı ve taş tozu efekti için)
 function createNoiseBuffer() {
   if (!audioCtx) return null;
   const bufferSize = audioCtx.sampleRate * 0.1;
@@ -55,13 +110,10 @@ function createNoiseBuffer() {
 }
 
 const SFX = {
-  // 1. Ağaç / Odun Kırma (Tok Kütük Darbesi + Çatlama)
   chopWood: () => {
-    if (!audioCtx) return;
+    initAudio();
     try {
       const now = audioCtx.currentTime;
-
-      // Tok kütük darbe osilatörü
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "triangle";
@@ -74,7 +126,6 @@ const SFX = {
       osc.start(now);
       osc.stop(now + 0.08);
 
-      // Odun lifi çatlama gürültüsü (Noise)
       const noise = audioCtx.createBufferSource();
       noise.buffer = createNoiseBuffer();
       const filter = audioCtx.createBiquadFilter();
@@ -91,13 +142,10 @@ const SFX = {
     } catch(e) {}
   },
 
-  // 2. Taş / Maden Kırma (Tiz Metal Çınlaması + Çekiç Tokluğu)
   mineRock: () => {
-    if (!audioCtx) return;
+    initAudio();
     try {
       const now = audioCtx.currentTime;
-
-      // Tiz metalik çınlama
       const oscHigh = audioCtx.createOscillator();
       const gainHigh = audioCtx.createGain();
       oscHigh.type = "sine";
@@ -110,7 +158,6 @@ const SFX = {
       oscHigh.start(now);
       oscHigh.stop(now + 0.12);
 
-      // Tok kaya kırılma gövdesi
       const oscLow = audioCtx.createOscillator();
       const gainLow = audioCtx.createGain();
       oscLow.type = "square";
@@ -125,9 +172,8 @@ const SFX = {
     } catch(e) {}
   },
 
-  // Kılıç savurma
   slash: () => {
-    if (!audioCtx) return;
+    initAudio();
     try {
       const now = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
@@ -144,9 +190,8 @@ const SFX = {
     } catch(e) {}
   },
 
-  // Canavara darbe
   hitMonster: () => {
-    if (!audioCtx) return;
+    initAudio();
     try {
       const now = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
@@ -163,9 +208,8 @@ const SFX = {
     } catch(e) {}
   },
 
-  // Toplama sesi
   pickup: () => {
-    if (!audioCtx) return;
+    initAudio();
     try {
       const now = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
@@ -183,7 +227,7 @@ const SFX = {
   },
 
   build: () => {
-    if (!audioCtx) return;
+    initAudio();
     try {
       [320, 440, 600].forEach((f, idx) => {
         const osc = audioCtx.createOscillator();
@@ -201,7 +245,7 @@ const SFX = {
   },
 
   night: () => {
-    if (!audioCtx) return;
+    initAudio();
     try {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
@@ -288,26 +332,12 @@ let trees = [];
 let rocks = [];
 let monsters = [];
 let meats = [];
-let groundDecorations = []; // Çimen tutamları ve çiçekler
 let base = null;
 
 const CYCLE_DURATION = 1800;
 let cycleTicks = 0;
 let dayCount = 1;
 let isNight = false;
-
-// Zemin Detaylarını Oluştur
-function initGroundDetails() {
-  groundDecorations = [];
-  for (let i = 0; i < 450; i++) {
-    groundDecorations.push({
-      x: Math.random() * (WORLD_WIDTH - 60) + 30,
-      y: Math.random() * (WORLD_HEIGHT - 60) + 30,
-      type: Math.floor(Math.random() * 3), // 0: koyu çim, 1: açık çim, 2: minik çiçek
-      size: Math.random() * 4 + 4
-    });
-  }
-}
 
 function startGame(device) {
   initAudio();
@@ -552,8 +582,6 @@ function resetGame() {
   isNight = false;
   isDead = false;
 
-  initGroundDetails();
-
   trees = [];
   rocks = [];
   for (let i = 0; i < 90; i++) spawnTree();
@@ -695,6 +723,27 @@ function handleWorld() {
 
   const playerSafe = isInsideBase(player);
 
+  // ==========================================
+  // 2. OPTİMİZASYON: CANAVAR SÜRÜ ÇARPIŞMASI (STACKING ÖNLEYİCİ)
+  // ==========================================
+  for (let i = 0; i < monsters.length; i++) {
+    for (let j = i + 1; j < monsters.length; j++) {
+      let m1 = monsters[i];
+      let m2 = monsters[j];
+      let cdx = m2.x - m1.x;
+      let cdy = m2.y - m1.y;
+      let cdist = Math.hypot(cdx, cdy);
+      if (cdist < m1.size + m2.size) {
+        let overlap = (m1.size + m2.size - cdist) / 2;
+        let angle = Math.atan2(cdy, cdx);
+        m1.x -= Math.cos(angle) * overlap;
+        m1.y -= Math.sin(angle) * overlap;
+        m2.x += Math.cos(angle) * overlap;
+        m2.y += Math.sin(angle) * overlap;
+      }
+    }
+  }
+
   for (let i = monsters.length - 1; i >= 0; i--) {
     let m = monsters[i];
 
@@ -745,53 +794,8 @@ function updateUI() {
 }
 
 // ==========================================
-// DETAYLI ZEMİN VE ÇİZİMLER
+// ÇİZİMLER
 // ==========================================
-
-// Zemin Dokusu Çizimi (Doğal Çimen & Çiçekler)
-function drawGround() {
-  // Temel zemin rengi
-  ctx.fillStyle = isNight ? "#0e1a0e" : "#2d521c";
-  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-
-  // Doğal çimen öbekleri ve kır çiçekleri
-  groundDecorations.forEach(d => {
-    if (d.type === 0) {
-      // Koyu Çimen Tutamı
-      ctx.fillStyle = isNight ? "#091209" : "#224115";
-      ctx.beginPath();
-      ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (d.type === 1) {
-      // Canlı Yeşil Çim Pırıltısı
-      ctx.fillStyle = isNight ? "#122412" : "#3b6827";
-      ctx.beginPath();
-      ctx.ellipse(d.x, d.y, d.size + 2, d.size - 1, Math.PI / 4, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // Minik Kır Çiçeği
-      ctx.fillStyle = isNight ? "#4a441e" : "#f1c40f";
-      ctx.beginPath();
-      ctx.arc(d.x, d.y, 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  });
-
-  // Harita Zemin Izgarası
-  ctx.strokeStyle = isNight ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.04)";
-  ctx.lineWidth = 2;
-  for (let x = 0; x < WORLD_WIDTH; x += 140) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, WORLD_HEIGHT); ctx.stroke();
-  }
-  for (let y = 0; y < WORLD_HEIGHT; y += 140) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WORLD_WIDTH, y); ctx.stroke();
-  }
-
-  // Harita Kırmızı Dış Sınırı
-  ctx.strokeStyle = "#c0392b";
-  ctx.lineWidth = 8;
-  ctx.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-}
 
 function drawPlayer(x, y) {
   ctx.save();
@@ -799,7 +803,6 @@ function drawPlayer(x, y) {
 
   const bob = Math.sin(player.walkCycle) * 2;
 
-  // İsim ve Can Barı
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 13px sans-serif";
   ctx.textAlign = "center";
@@ -823,18 +826,15 @@ function drawPlayer(x, y) {
     ctx.stroke();
   }
 
-  // Ayaklar
   ctx.fillStyle = "#1b2631";
   ctx.fillRect(-8, 10 + bob, 6, 8);
   ctx.fillRect(2, 10 - bob, 6, 8);
 
-  // Gövde
   ctx.fillStyle = "#2471a3";
   ctx.fillRect(-10, -10 + bob, 20, 22);
   ctx.fillStyle = "#1b4f72";
   ctx.fillRect(-10, -2 + bob, 20, 4);
 
-  // Kafa & Miğfer
   ctx.fillStyle = "#f5cba7";
   ctx.beginPath();
   ctx.arc(0, -20 + bob, 10, 0, Math.PI * 2);
@@ -848,7 +848,6 @@ function drawPlayer(x, y) {
   ctx.fillStyle = "#2c3e50";
   ctx.fillRect(3, -22 + bob, 3, 3);
 
-  // Alet
   ctx.save();
   ctx.translate(8, -4 + bob);
   if (player.isAttacking) ctx.rotate(0.6);
@@ -1065,8 +1064,14 @@ function render() {
   ctx.save();
   ctx.translate(-camera.x, -camera.y);
 
-  // Doğal Detaylı Zemin
-  drawGround();
+  // Önbelleğe alınmış zemin görselini doğrudan bas (Ultra Hızlı FPS)
+  ctx.drawImage(groundCanvas, 0, 0);
+
+  // Gece Işık Filtresi
+  if (isNight) {
+    ctx.fillStyle = "rgba(5, 12, 5, 0.65)";
+    ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+  }
 
   if (base) {
     ctx.fillStyle = "#6e2c00";
