@@ -71,7 +71,7 @@ const commentsContainer = document.getElementById("comments-container");
 const btnPlayAgain = document.getElementById("btn-play-again");
 
 // ==========================================
-// BAŞARIMLAR (1. VE 2. HARİTA)
+// BAŞARIMLAR
 // ==========================================
 const MAP1_ACHIEVEMENTS = [
   "1. Gün: Hayat Adamı (Kurtlar Yakında!)",
@@ -100,7 +100,7 @@ const MAP2_ACHIEVEMENTS = [
   "11. Gün: BÜYÜK BOSS SAVAŞI & ZAFER!"
 ];
 
-// Statik Göller ve Girilemeyen Antik Yapılar
+// Göller ve Kalıntılar
 const lakes = [
   { x: 1050, y: 950, rx: 240, ry: 170 },
   { x: 3250, y: 2250, rx: 280, ry: 200 },
@@ -212,7 +212,7 @@ function bakeGround2() {
 bakeGround2();
 
 // ==========================================
-// SES MOTORU & CEHENNEM AMBİYANSI
+// SES MOTORU
 // ==========================================
 let audioCtx = null;
 let nightMusicTimer = null;
@@ -507,7 +507,7 @@ const SFX = {
 };
 
 // ==========================================
-// OYUNCU DURUMU & ENVANTER
+// OYUNCU DURUMU
 // ==========================================
 let currentDevice = "pc";
 let gameRunning = false;
@@ -557,9 +557,6 @@ const player = {
   poisonTickTimer: 0
 };
 
-// ==========================================
-// DÜNYA NESNELERİ
-// ==========================================
 let trees = [];
 let rocks = [];
 let ores = [];
@@ -688,11 +685,35 @@ function spawnOre(type) {
   }
 }
 
-function isCollidingWithLava(x, y, padding = 30) {
+// Göl ve Lav Çarpışma Kontrolü
+function isCollidingWithLakes(x, y, padding = 15) {
+  for (let l of lakes) {
+    const dx = (x - l.x) / (l.rx + padding);
+    const dy = (y - l.y) / (l.ry + padding);
+    if (dx * dx + dy * dy <= 1) return true;
+  }
+  return false;
+}
+
+function isCollidingWithLava(x, y, padding = 15) {
   for (let l of lavaLakes) {
     const dx = (x - l.x) / (l.rx + padding);
     const dy = (y - l.y) / (l.ry + padding);
     if (dx * dx + dy * dy <= 1) return true;
+  }
+  return false;
+}
+
+function isCollidingWithRuins(x, y, padding = 15) {
+  for (let r of ruins) {
+    if (
+      x >= r.x - padding &&
+      x <= r.x + r.w + padding &&
+      y >= r.y - padding &&
+      y <= r.y + r.h + padding
+    ) {
+      return true;
+    }
   }
   return false;
 }
@@ -1162,32 +1183,9 @@ function attackOrGather() {
 }
 
 // ==========================================
-// SPAWN VE AYRI TUTMA SİSTEMİ (ÇAKIŞMA ÖNLEYİCİ)
+// SPAWN VE ÇAKIŞMA ÖNLEYİCİ SİSTEM
 // ==========================================
 const MIN_SEPARATION = 95;
-
-function isCollidingWithLakes(x, y, padding = 30) {
-  for (let l of lakes) {
-    const dx = (x - l.x) / (l.rx + padding);
-    const dy = (y - l.y) / (l.ry + padding);
-    if (dx * dx + dy * dy <= 1) return true;
-  }
-  return false;
-}
-
-function isCollidingWithRuins(x, y, padding = 20) {
-  for (let r of ruins) {
-    if (
-      x >= r.x - padding &&
-      x <= r.x + r.w + padding &&
-      y >= r.y - padding &&
-      y <= r.y + r.h + padding
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
 
 function isPositionValid(x, y) {
   if (Math.hypot(x - WORLD_WIDTH / 2, y - WORLD_HEIGHT / 2) < 250) return false;
@@ -1244,9 +1242,6 @@ function spawnRock() {
   }
 }
 
-// ==========================================
-// CANAVAR DOĞUŞLARI
-// ==========================================
 function spawnNightMonsters() {
   if (currentMap === 1) {
     let monsterType = "wolf";
@@ -1596,6 +1591,7 @@ function isInsideBase(target) {
   return target.x >= base.x && target.x <= base.x + base.size && target.y >= base.y && target.y <= base.y + base.size;
 }
 
+// OYUNCU HAREKETİ VE GÖL/LAV ENGELİ
 function updatePlayer() {
   if (isDead || gameWon) return;
 
@@ -1613,29 +1609,28 @@ function updatePlayer() {
 
   if (moveX !== 0 || moveY !== 0) player.walkCycle += 0.25;
 
-  const nextX = player.x + moveX * player.speed;
-  const nextY = player.y + moveY * player.speed;
+  const targetX = player.x + moveX * player.speed;
+  const targetY = player.y + moveY * player.speed;
 
   if (currentMap === 1) {
-    if (!isCollidingWithLakes(nextX, player.y, 8) && !isCollidingWithRuins(nextX, player.y, 8)) {
-      player.x = Math.max(player.size, Math.min(WORLD_WIDTH - player.size, nextX));
+    if (!isCollidingWithLakes(targetX, player.y, 8) && !isCollidingWithRuins(targetX, player.y, 8)) {
+      player.x = Math.max(player.size, Math.min(WORLD_WIDTH - player.size, targetX));
     }
-    if (!isCollidingWithLakes(player.x, nextY, 8) && !isCollidingWithRuins(player.x, nextY, 8)) {
-      player.y = Math.max(player.size, Math.min(WORLD_HEIGHT - player.size, nextY));
+    if (!isCollidingWithLakes(player.x, targetY, 8) && !isCollidingWithRuins(player.x, targetY, 8)) {
+      player.y = Math.max(player.size, Math.min(WORLD_HEIGHT - player.size, targetY));
     }
   } else {
-    if (!isCollidingWithLava(nextX, player.y, 8)) player.x = nextX;
-    if (!isCollidingWithLava(player.x, nextY, 8)) player.y = nextY;
+    if (!isCollidingWithLava(targetX, player.y, 8)) {
+      player.x = Math.max(player.size, Math.min(WORLD_WIDTH - player.size, targetX));
+    }
+    if (!isCollidingWithLava(player.x, targetY, 8)) {
+      player.y = Math.max(player.size, Math.min(WORLD_HEIGHT - player.size, targetY));
+    }
   }
 
   if (player.isAttacking) {
     player.attackTimer--;
     if (player.attackTimer <= 0) player.isAttacking = false;
-  }
-
-  if (isInsideBase(player) && player.health < player.maxHealth) {
-    player.health = Math.min(player.maxHealth, player.health + 0.15);
-    updateUI();
   }
 
   camera.x = player.x - canvas.width / 2;
@@ -1722,10 +1717,10 @@ function escapeHtml(text) {
 }
 
 // ==========================================
-// DETAYLI ÇİZİMLER (AĞAÇ, TAŞ, YAPILAR)
+// DETAYLI ÇİZİMLER (AĞAÇ, TAŞ, GELİŞMİŞ EV)
 // ==========================================
 
-// ORGANİK VE CAN BARLI DETAYLI AĞAÇ ÇİZİMİ
+// ORGANİK, KÖKLÜ VE CAN BARLI AĞAÇ
 function drawTree(t) {
   let shakeOffset = 0;
   if (t.shake > 0) {
@@ -1736,7 +1731,7 @@ function drawTree(t) {
   const px = t.x + shakeOffset;
   const py = t.y;
 
-  // Hasar Aldığında Çıkan Can Barı
+  // Hasar Aldığında Üstte Can Barı
   if (t.hp < t.maxHp) {
     ctx.fillStyle = "rgba(0,0,0,0.75)";
     ctx.fillRect(px - 24, py - 70, 48, 6);
@@ -1762,7 +1757,7 @@ function drawTree(t) {
   ctx.lineTo(px + 10, py - 12);
   ctx.fill();
 
-  // Gövde Dokusu ve Dallanma
+  // Gövde Çizgileri ve Dallanma
   ctx.strokeStyle = "#321a08";
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -1772,7 +1767,7 @@ function drawTree(t) {
   ctx.moveTo(px + 6, py - 10); ctx.lineTo(px + 16, py - 26);
   ctx.stroke();
 
-  // Katmanlı Yaprak Kümeleri
+  // 4 Katmanlı Canlı Yaprak Kümeleri
   const c1 = t.leafVariation === 0 ? "#145a32" : (t.leafVariation === 1 ? "#196f3d" : "#0e4d26");
   const c2 = t.leafVariation === 0 ? "#1e8449" : (t.leafVariation === 1 ? "#27ae60" : "#177538");
   const c3 = t.leafVariation === 0 ? "#2ecc71" : (t.leafVariation === 1 ? "#58d68d" : "#28b463");
@@ -1799,7 +1794,7 @@ function drawTree(t) {
   ctx.fill();
 }
 
-// ÇOKGEN, FASETLİ VE CAN BARLI DETAYLI KAYA ÇİZİMİ
+// ÇOKGEN, FASETLİ VE CAN BARLI KAYA
 function drawRock(r) {
   let shakeOffset = 0;
   if (r.shake > 0) {
@@ -1810,7 +1805,7 @@ function drawRock(r) {
   const px = r.x + shakeOffset;
   const py = r.y;
 
-  // Hasar Aldığında Çıkan Can Barı
+  // Hasar Aldığında Üstte Can Barı
   if (r.hp < r.maxHp) {
     ctx.fillStyle = "rgba(0,0,0,0.75)";
     ctx.fillRect(px - 20, py - 34, 40, 5);
@@ -1826,7 +1821,6 @@ function drawRock(r) {
   ctx.save();
   ctx.translate(px, py);
 
-  // Koyu Taban
   ctx.fillStyle = "#424949";
   ctx.beginPath();
   ctx.moveTo(r.points[0].x, r.points[0].y);
@@ -1836,7 +1830,6 @@ function drawRock(r) {
   ctx.closePath();
   ctx.fill();
 
-  // Açık Gri Üst Faset
   ctx.fillStyle = "#7f8c8d";
   ctx.beginPath();
   ctx.moveTo(r.points[1].x, r.points[1].y);
@@ -1844,7 +1837,6 @@ function drawRock(r) {
   ctx.lineTo(0, 0);
   ctx.fill();
 
-  // Alt Koyu Faset
   ctx.fillStyle = "#2c3e50";
   ctx.beginPath();
   ctx.moveTo(r.points[4].x, r.points[4].y);
@@ -1852,7 +1844,6 @@ function drawRock(r) {
   ctx.lineTo(0, 0);
   ctx.fill();
 
-  // Maden Damarı
   ctx.strokeStyle = "#17202a";
   ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -2118,7 +2109,6 @@ function drawOre(o) {
   const px = o.x + shakeOffset;
   const py = o.y;
 
-  // Maden Can Barı
   if (o.hp < o.maxHp) {
     ctx.fillStyle = "rgba(0,0,0,0.75)";
     ctx.fillRect(px - 18, py - 30, 36, 5);
@@ -2185,11 +2175,36 @@ function drawPortal(p) {
   ctx.fillRect(px - 6, py - 21, 12, 16);
 }
 
+// ==========================================
+// EV (SIĞINAK) VE BÜYÜK BELİRGİN CAN BARI
+// ==========================================
 function drawBaseStructure(b) {
   const bx = b.x;
   const by = b.y;
   const bs = b.size;
 
+  // 1. Çatının Üstünde Devasa ve Belirgin Can Barı
+  const barY = by - 56;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+  ctx.fillRect(bx - 10, barY, bs + 20, 12);
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(bx - 10, barY, bs + 20, 12);
+
+  const hpRatio = Math.max(0, b.hp / b.maxHp);
+  ctx.fillStyle = hpRatio > 0.4 ? "#2ecc71" : "#e74c3c";
+  ctx.fillRect(bx - 9, barY + 1, (bs + 18) * hpRatio, 10);
+
+  // Can Değeri Yazısı
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 12px sans-serif";
+  ctx.textAlign = "center";
+  ctx.shadowColor = "rgba(0,0,0,0.9)";
+  ctx.shadowBlur = 4;
+  ctx.fillText(`🏠 Sığınak Canı: ${Math.floor(b.hp)} / ${b.maxHp}`, bx + bs / 2, barY - 6);
+  ctx.shadowBlur = 0;
+
+  // 2. Ev Gövdesi ve Çatı
   ctx.fillStyle = "rgba(0,0,0,0.38)";
   ctx.fillRect(bx - 12, by + bs - 6, bs + 24, 22);
 
@@ -2211,7 +2226,7 @@ function drawBaseStructure(b) {
   ctx.fillStyle = "#873600";
   ctx.beginPath();
   ctx.moveTo(bx - 18, by + 6);
-  ctx.lineTo(bx + bs / 2, by - 48);
+  ctx.lineTo(bx + bs / 2, by - 44);
   ctx.lineTo(bx + bs + 18, by + 6);
   ctx.fill();
 
@@ -2234,12 +2249,7 @@ function drawRuins() {
 function drawMeat(x, y) {
   ctx.fillStyle = "#c0392b";
   ctx.beginPath();
-  ctx.arc(x, y, 9, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#fdfefe";
-  ctx.fillRect(x + 5, y - 3, 8, 6);
-  ctx.beginPath();
-  ctx.arc(x + 13, y, 4, 0, Math.PI * 2);
+  ctx.arc(x, y, 8, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -2310,10 +2320,6 @@ function render() {
   }
 
   if (base && base.hp > 0) {
-    ctx.fillStyle = "rgba(0,0,0,0.7)";
-    ctx.fillRect(base.x, base.y - 18, base.size, 8);
-    ctx.fillStyle = base.hp > 100 ? "#2ecc71" : "#e74c3c";
-    ctx.fillRect(base.x, base.y - 18, (base.size * base.hp) / base.maxHp, 8);
     drawBaseStructure(base);
   }
 
