@@ -40,7 +40,7 @@ body.ios-fullscreen {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(5, 10, 5, 0.95);
+  background: rgba(5, 10, 5, 0.96);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -49,44 +49,44 @@ body.ios-fullscreen {
 
 .modal-box {
   background: #141c14;
-  padding: 24px 22px;
+  padding: 22px 20px;
   border-radius: 20px;
   text-align: center;
   box-shadow: 0 12px 40px rgba(0,0,0,0.9);
   max-width: 92%;
-  width: 340px;
+  width: 350px;
   border: 1px solid #2f3e2f;
 }
 
 .modal-box h2 {
   font-size: 24px;
-  color: #2ecc71;
+  color: #f1c40f;
   margin-bottom: 4px;
 }
 
 .version-tag {
   display: inline-block;
-  background: rgba(46, 204, 113, 0.15);
-  color: #2ecc71;
-  border: 1px solid rgba(46, 204, 113, 0.4);
+  background: rgba(241, 196, 15, 0.15);
+  color: #f1c40f;
+  border: 1px solid rgba(241, 196, 15, 0.4);
   font-size: 11px;
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 20px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
   text-align: left;
-  gap: 6px;
-  margin-bottom: 14px;
+  gap: 5px;
+  margin-bottom: 12px;
 }
 
 .input-group label {
   font-size: 12px;
-  color: #aaa;
+  color: #bbb;
   font-weight: 600;
 }
 
@@ -94,9 +94,9 @@ body.ios-fullscreen {
   background: #0b110b;
   border: 1.5px solid #2e4a2e;
   color: #fff;
-  padding: 10px 14px;
+  padding: 9px 12px;
   border-radius: 10px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   outline: none;
   text-align: center;
@@ -106,27 +106,52 @@ body.ios-fullscreen {
   border-color: #2ecc71;
 }
 
+.gender-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.gender-btn {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 10px;
+  border: 1.5px solid #444;
+  background: #1c241c;
+  color: #aaa;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.active-gender {
+  border-color: #2ecc71 !important;
+  background: #243424 !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+}
+
 .modal-box p {
   color: #bbb;
-  margin-bottom: 12px;
-  font-size: 13px;
+  margin-bottom: 10px;
+  font-size: 12px;
 }
 
 .modal-buttons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .choice-btn {
   color: white;
   border: none;
-  padding: 12px;
+  padding: 11px;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.1s;
+  touch-action: manipulation;
 }
 
 .choice-btn:active {
@@ -158,7 +183,6 @@ body.ios-fullscreen {
   cursor: pointer;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 #btn-fullscreen {
@@ -166,14 +190,36 @@ body.ios-fullscreen {
   padding: 8px 12px;
 }
 
-.hud-btn:active {
-  background: rgba(46, 204, 113, 0.4);
+/* Başarım Banner */
+#achievement-banner {
+  position: absolute;
+  top: 60px;
+  right: 14px;
+  background: linear-gradient(135deg, rgba(20, 30, 20, 0.95), rgba(40, 60, 40, 0.9));
+  border: 2px solid #f1c40f;
+  padding: 10px 16px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 200;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  animation: slideDown 0.3s ease-out;
 }
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.ach-icon { font-size: 26px; }
+.ach-title { font-size: 11px; color: #f1c40f; font-weight: 800; text-transform: uppercase; }
+.ach-desc { font-size: 13px; color: #fff; font-weight: 700; }
 
 /* Mini Harita */
 #minimapCanvas {
   position: absolute;
-  top: 58px;
+  top: 120px;
   right: 14px;
   background: rgba(10, 15, 10, 0.85);
   border: 2px solid rgba(255, 255, 255, 0.3);
@@ -206,30 +252,21 @@ body.ios-fullscreen {
   border: 1px solid #2d3b2d;
 }
 
-.rotate-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
-}
+.rotate-icon { font-size: 48px; margin-bottom: 12px; }
 
 @media screen and (orientation: portrait) and (max-width: 900px) {
-  #rotate-warning {
-    display: flex;
-  }
+  #rotate-warning { display: flex; }
 }
 
 /* Oyun Konteyneri */
 #game-container {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   width: 100vw;
   height: 100vh;
   height: -webkit-fill-available;
-  justify-content: center;
+  overflow: hidden;
 }
 
-/* Üst Kapsül Arayüz Barı */
 #ui-bar {
   position: absolute;
   top: 10px;
@@ -261,18 +298,20 @@ canvas#gameCanvas {
   display: block;
   width: 100vw;
   height: 100vh;
-  object-fit: contain;
 }
 
 .hint-text {
   position: absolute;
   bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 11px;
   color: #bbb;
   background: rgba(10, 15, 10, 0.75);
   padding: 4px 14px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
 }
 
 /* Mobil Katman */
@@ -286,7 +325,6 @@ canvas#gameCanvas {
   z-index: 100;
 }
 
-/* Joystick */
 #joystick-zone {
   position: absolute;
   bottom: 24px;
@@ -320,7 +358,6 @@ canvas#gameCanvas {
   pointer-events: none;
 }
 
-/* Sağ Alt Butonlar */
 #action-zone {
   position: absolute;
   bottom: 24px;
