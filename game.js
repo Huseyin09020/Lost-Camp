@@ -12,8 +12,9 @@ window.addEventListener("resize", resizeCanvas);
 const minimapCanvas = document.getElementById("minimapCanvas");
 const mctx = minimapCanvas.getContext("2d");
 
-const WORLD_WIDTH = 3600;
-const WORLD_HEIGHT = 2600;
+// DAHA DA BÜYÜTÜLMÜŞ HARİTA (4400 x 3200)
+const WORLD_WIDTH = 4400;
+const WORLD_HEIGHT = 3200;
 
 // UI Elementleri
 const healthEl = document.getElementById("health-val");
@@ -31,43 +32,43 @@ const playerNameInput = document.getElementById("player-name-input");
 const achBanner = document.getElementById("achievement-banner");
 const achDesc = document.getElementById("ach-desc");
 
-// 10 Günlük Başarım Başlıkları
+// 10 Günlük Başarımlar
 const ACHIEVEMENTS = [
-  "1. Gün: Hayat Adamı (İlk Adım)",
+  "1. Gün: Hayat Adamı (Kurtlar Yakında!)",
   "2. Gün: Zorluklara Göğüs Germek",
-  "3. Gün: Vahşi Doğanın Ustası",
-  "4. Gün: Karanlığın Avcısı",
+  "3. Gün: Vahşi Kurtların Efendisi",
+  "4. Gün: Ayıların Hükümdarlığı Başladı!",
   "5. Gün: Yarı Yolu Devirdik! (KONTROL NOKTASI)",
-  "6. Gün: Yıkılmaz İrade",
-  "7. Gün: Çelik Bilek",
-  "8. Gün: Umut Işığı",
+  "6. Gün: Ayı Avcısı",
+  "7. Gün: Karanlık İblisler Uyandı!",
+  "8. Gün: Cehennem Şafağı",
   "9. Gün: Sonun Başlangıcı",
   "10. Gün: KIZINI KURTAR VE KAÇ!"
 ];
 
-// Zemin Önbelleği (Ultra Hızlı FPS)
+// Zemin Önbelleği (Ultra Hızlı 60 FPS)
 const groundCanvas = document.createElement("canvas");
 groundCanvas.width = WORLD_WIDTH;
 groundCanvas.height = WORLD_HEIGHT;
 const gctx = groundCanvas.getContext("2d");
 
 function bakeGround() {
-  gctx.fillStyle = "#2d521c";
+  gctx.fillStyle = "#2a4d19";
   gctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  for (let i = 0; i < 600; i++) {
+  for (let i = 0; i < 800; i++) {
     const gx = Math.random() * (WORLD_WIDTH - 60) + 30;
     const gy = Math.random() * (WORLD_HEIGHT - 60) + 30;
     const type = Math.floor(Math.random() * 3);
     const size = Math.random() * 4 + 4;
 
     if (type === 0) {
-      gctx.fillStyle = "#224115";
+      gctx.fillStyle = "#1e3a12";
       gctx.beginPath();
       gctx.arc(gx, gy, size, 0, Math.PI * 2);
       gctx.fill();
     } else if (type === 1) {
-      gctx.fillStyle = "#3b6827";
+      gctx.fillStyle = "#385e24";
       gctx.beginPath();
       gctx.ellipse(gx, gy, size + 2, size - 1, Math.PI / 4, 0, Math.PI * 2);
       gctx.fill();
@@ -79,7 +80,7 @@ function bakeGround() {
     }
   }
 
-  gctx.strokeStyle = "rgba(0,0,0,0.04)";
+  gctx.strokeStyle = "rgba(0,0,0,0.035)";
   gctx.lineWidth = 2;
   for (let x = 0; x < WORLD_WIDTH; x += 140) {
     gctx.beginPath(); gctx.moveTo(x, 0); gctx.lineTo(x, WORLD_HEIGHT); gctx.stroke();
@@ -118,8 +119,8 @@ const SFX = {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "triangle";
-      osc.frequency.setValueAtTime(160, now);
-      osc.frequency.exponentialRampToValueAtTime(45, now + 0.08);
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
       gain.gain.setValueAtTime(0.3, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
       osc.connect(gain);
@@ -194,7 +195,7 @@ const SFX = {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "triangle";
-      osc.frequency.setValueAtTime(240, now);
+      osc.frequency.setValueAtTime(220, now);
       osc.frequency.exponentialRampToValueAtTime(50, now + 0.11);
       gain.gain.setValueAtTime(0.24, now);
       gain.gain.exponentialRampToValueAtTime(0.01, now + 0.11);
@@ -428,7 +429,7 @@ function startGame(device) {
     pcControls.classList.remove("hidden");
   }
 
-  resetGame(true); // İlk açılış: 1. günden başla
+  resetGame(true);
   gameRunning = true;
   triggerAchievement(0);
   requestAnimationFrame(gameLoop);
@@ -548,10 +549,10 @@ function attackOrGather() {
   const reach = 85;
   let hit = false;
 
-  // 10. Gün Kapısını Kırma
+  // 10. Gün Kapısını Kırma (360 Derece Çevresel Vuruş)
   if (escapePortal && !escapePortal.broken) {
     let pdist = Math.hypot(escapePortal.x - player.x, escapePortal.y - player.y);
-    if (pdist < reach + 40) {
+    if (pdist < reach + 45) {
       escapePortal.hp -= 25;
       escapePortal.shake = 8;
       hit = true;
@@ -564,7 +565,7 @@ function attackOrGather() {
     }
   }
 
-  // Ağaç
+  // Ağaç Kırma
   if (!hit) {
     for (let i = trees.length - 1; i >= 0; i--) {
       let t = trees[i];
@@ -584,7 +585,7 @@ function attackOrGather() {
     }
   }
 
-  // Taş
+  // Taş Kırma
   if (!hit) {
     for (let i = rocks.length - 1; i >= 0; i--) {
       let r = rocks[i];
@@ -604,7 +605,7 @@ function attackOrGather() {
     }
   }
 
-  // Canavar
+  // Canavar / Yaratık Vurma
   monsters.forEach(m => {
     let dx = m.x - player.x;
     let dy = m.y - player.y;
@@ -612,7 +613,7 @@ function attackOrGather() {
     let inFront = (player.facing === 1 && dx > -15) || (player.facing === -1 && dx < 15);
     if (dist < reach + 14 && inFront) {
       m.health -= tool.monsterDmg;
-      m.x += player.facing * 40;
+      m.x += player.facing * 38;
       m.isChasing = true;
       hit = true;
       SFX.hitMonster();
@@ -626,11 +627,10 @@ function attackOrGather() {
 // ==========================================
 // AĞAÇ VE TAŞLARIN ÇAKIŞMASINI ÖNLEYEN SPAWN SİSTEMİ
 // ==========================================
-const MIN_SEPARATION = 95; // Ağaç ve taşlar arasındaki minimum mesafe
+const MIN_SEPARATION = 95;
 
 function isPositionValid(x, y) {
-  // Merkezdeki portal alanına çok yakın doğmasın
-  if (Math.hypot(x - WORLD_WIDTH / 2, y - WORLD_HEIGHT / 2) < 220) return false;
+  if (Math.hypot(x - WORLD_WIDTH / 2, y - WORLD_HEIGHT / 2) < 250) return false;
 
   for (let t of trees) {
     if (Math.hypot(x - t.x, y - t.y) < MIN_SEPARATION) return false;
@@ -642,14 +642,14 @@ function isPositionValid(x, y) {
 }
 
 function spawnTree() {
-  for (let attempts = 0; attempts < 30; attempts++) {
-    const x = Math.random() * (WORLD_WIDTH - 240) + 120;
-    const y = Math.random() * (WORLD_HEIGHT - 240) + 120;
+  for (let attempts = 0; attempts < 35; attempts++) {
+    const x = Math.random() * (WORLD_WIDTH - 260) + 130;
+    const y = Math.random() * (WORLD_HEIGHT - 260) + 130;
     if (isPositionValid(x, y)) {
       trees.push({
         x: x,
         y: y,
-        size: 42,
+        size: 46,
         hp: 100,
         maxHp: 100,
         shake: 0,
@@ -661,20 +661,20 @@ function spawnTree() {
 }
 
 function spawnRock() {
-  for (let attempts = 0; attempts < 30; attempts++) {
-    const x = Math.random() * (WORLD_WIDTH - 240) + 120;
-    const y = Math.random() * (WORLD_HEIGHT - 240) + 120;
+  for (let attempts = 0; attempts < 35; attempts++) {
+    const x = Math.random() * (WORLD_WIDTH - 260) + 130;
+    const y = Math.random() * (WORLD_HEIGHT - 260) + 130;
     if (isPositionValid(x, y)) {
       rocks.push({
         x: x,
         y: y,
-        size: 30,
+        size: 20, // Daha küçük ve kompakt kaya
         hp: 100,
         maxHp: 100,
         shake: 0,
         points: [
-          { x: -24, y: 8 }, { x: -18, y: -18 }, { x: 5, y: -26 },
-          { x: 24, y: -12 }, { x: 26, y: 16 }, { x: -4, y: 24 }
+          { x: -16, y: 5 }, { x: -12, y: -12 }, { x: 3, y: -17 },
+          { x: 16, y: -8 }, { x: 17, y: 11 }, { x: -3, y: 16 }
         ]
       });
       break;
@@ -683,7 +683,7 @@ function spawnRock() {
 }
 
 // ==========================================
-// CHECKPOINT SİSTEMİ: <5 İSE 1. GÜN, >=5 İSE 5. GÜNDEN BAŞLA
+// CHECKPOINT SİSTEMİ (<5 ise 1, >=5 ise 5. Gün)
 // ==========================================
 function resetGame(forceFirstDay = false) {
   resizeCanvas();
@@ -692,11 +692,11 @@ function resetGame(forceFirstDay = false) {
     dayCount = 1;
   } else {
     if (dayCount >= 5) {
-      dayCount = 5; // 5. Gün Checkpoint'i
+      dayCount = 5;
       player.wood = Math.max(player.wood, 15);
       player.stone = Math.max(player.stone, 8);
     } else {
-      dayCount = 1; // 5'ten küçükse sıfırdan başla
+      dayCount = 1;
       player.wood = 0;
       player.stone = 0;
     }
@@ -720,8 +720,8 @@ function resetGame(forceFirstDay = false) {
 
   trees = [];
   rocks = [];
-  for (let i = 0; i < 90; i++) spawnTree();
-  for (let i = 0; i < 50; i++) spawnRock();
+  for (let i = 0; i < 110; i++) spawnTree();
+  for (let i = 0; i < 65; i++) spawnRock();
 
   toolCycleBtn.innerText = TOOLS[0].name;
   document.getElementById("btn-attack").innerText = TOOLS[0].btnIcon;
@@ -809,6 +809,46 @@ function checkMeatPickup() {
   }
 }
 
+// ==========================================
+// GÜNE GÖRE FARKLI CANAVARLAR (KURT, AYI, İBLİS)
+// ==========================================
+function spawnNightMonsters() {
+  let monsterType = "wolf";
+  let count = 4 + dayCount * 2;
+  let baseSpeed = 2.4;
+  let baseHp = 70;
+
+  if (dayCount >= 4 && dayCount <= 6) {
+    monsterType = "bear"; // Vahşi Ayı
+    count = 3 + Math.floor(dayCount * 1.5);
+    baseSpeed = 1.9; // Daha cüsseli, biraz yavaş ama dayanıklı
+    baseHp = 130;
+  } else if (dayCount >= 7) {
+    monsterType = "demon"; // Gölge İblisi
+    count = 5 + dayCount * 2;
+    baseSpeed = 2.6; // Hızlı ve saldırgan
+    baseHp = 110;
+  }
+
+  for (let i = 0; i < count; i++) {
+    let spawnAngle = Math.random() * Math.PI * 2;
+    let spawnDist = 580 + Math.random() * 320;
+    monsters.push({
+      type: monsterType,
+      x: player.x + Math.cos(spawnAngle) * spawnDist,
+      y: player.y + Math.sin(spawnAngle) * spawnDist,
+      size: monsterType === "bear" ? 28 : (monsterType === "demon" ? 24 : 20),
+      speed: baseSpeed + (dayCount * 0.08),
+      health: baseHp + (dayCount * 10),
+      maxHealth: baseHp + (dayCount * 10),
+      animOffset: Math.random() * 10,
+      isChasing: false,
+      wanderAngle: Math.random() * Math.PI * 2,
+      wanderTimer: 0
+    });
+  }
+}
+
 function handleWorld() {
   if (isDead || gameWon) return;
 
@@ -826,30 +866,13 @@ function handleWorld() {
     timeEl.style.color = "#e74c3c";
   }
 
-  // Gece/Gündüz Döngüsü
   if (cycleTicks >= CYCLE_DURATION) {
     cycleTicks = 0;
     isNight = !isNight;
 
     if (isNight) {
       SFX.night();
-      const count = 5 + dayCount * 2;
-      for (let i = 0; i < count; i++) {
-        let spawnAngle = Math.random() * Math.PI * 2;
-        let spawnDist = 550 + Math.random() * 300;
-        monsters.push({
-          x: player.x + Math.cos(spawnAngle) * spawnDist,
-          y: player.y + Math.sin(spawnAngle) * spawnDist,
-          size: 24,
-          speed: 2.3 + dayCount * 0.1,
-          health: 80 + dayCount * 10,
-          maxHealth: 80 + dayCount * 10,
-          animOffset: Math.random() * 10,
-          isChasing: false,
-          wanderAngle: Math.random() * Math.PI * 2,
-          wanderTimer: 0
-        });
-      }
+      spawnNightMonsters();
     } else {
       dayCount++;
       dayEl.innerText = `${dayCount}/10 Gün`;
@@ -868,14 +891,14 @@ function handleWorld() {
         };
       }
 
-      for (let i = 0; i < 15; i++) spawnTree();
-      for (let i = 0; i < 8; i++) spawnRock();
+      for (let i = 0; i < 18; i++) spawnTree();
+      for (let i = 0; i < 10; i++) spawnRock();
     }
   }
 
   const playerSafe = isInsideBase(player);
 
-  // Canavarların birbirini itmesi
+  // Canavar Çarpışma Ayrımı
   for (let i = 0; i < monsters.length; i++) {
     for (let j = i + 1; j < monsters.length; j++) {
       let m1 = monsters[i];
@@ -947,7 +970,8 @@ function handleWorld() {
     if (!playerSafe && m.isChasing) {
       let dist = Math.hypot(player.x - m.x, player.y - m.y);
       if (dist < player.size + m.size) {
-        player.health -= 0.65;
+        const dmg = m.type === "bear" ? 0.95 : (m.type === "demon" ? 0.75 : 0.6);
+        player.health -= dmg;
         if (player.health <= 0) {
           player.health = 0;
           isDead = true;
@@ -965,7 +989,7 @@ function updateUI() {
 }
 
 // ==========================================
-// DETAYLI GELİŞMİŞ ÇİZİMLER (BELİRGİN AĞAÇ & TAŞ)
+// GELİŞMİŞ ÇİZİMLER (AĞAÇ, TAŞ, CANAVARLAR)
 // ==========================================
 
 function drawPlayer(x, y) {
@@ -974,6 +998,7 @@ function drawPlayer(x, y) {
 
   const bob = Math.sin(player.walkCycle) * 2;
 
+  // İsim ve Can
   ctx.fillStyle = "#ffffff";
   ctx.font = "bold 13px sans-serif";
   ctx.textAlign = "center";
@@ -997,11 +1022,13 @@ function drawPlayer(x, y) {
     ctx.stroke();
   }
 
+  // Ayaklar
   ctx.fillStyle = "#1b2631";
   ctx.fillRect(-8, 10 + bob, 6, 8);
   ctx.fillRect(2, 10 - bob, 6, 8);
 
   if (player.gender === "male") {
+    // ERKEK SAVAŞÇI
     ctx.fillStyle = "#2471a3";
     ctx.fillRect(-10, -10 + bob, 20, 22);
     ctx.fillStyle = "#1b4f72";
@@ -1017,6 +1044,7 @@ function drawPlayer(x, y) {
     ctx.arc(0, -23 + bob, 11, Math.PI, Math.PI * 2);
     ctx.fill();
   } else {
+    // KADIN AVCI
     ctx.fillStyle = "#922b21";
     ctx.fillRect(-9, -10 + bob, 18, 22);
     ctx.fillStyle = "#d35400";
@@ -1039,6 +1067,7 @@ function drawPlayer(x, y) {
   ctx.fillStyle = "#2c3e50";
   ctx.fillRect(3, -22 + bob, 3, 3);
 
+  // Alet
   ctx.save();
   ctx.translate(8, -4 + bob);
   if (player.isAttacking) ctx.rotate(0.6);
@@ -1106,49 +1135,115 @@ function drawPortal(p) {
   ctx.fillRect(px - 6, py - 21, 12, 16);
 }
 
+// GÜNLERE GÖRE CANAVAR MODELLERİ (Kurt, Ayı, İblis)
 function drawMonster(m) {
   ctx.save();
   ctx.translate(m.x, m.y);
 
+  // Can Barı
   ctx.fillStyle = "rgba(0,0,0,0.6)";
-  ctx.fillRect(-18, -32, 36, 5);
+  ctx.fillRect(-18, -28, 36, 5);
   ctx.fillStyle = "#e74c3c";
-  ctx.fillRect(-18, -32, (36 * m.health) / m.maxHealth, 5);
+  ctx.fillRect(-18, -28, (36 * m.health) / m.maxHealth, 5);
 
   const pulse = Math.sin(Date.now() * 0.008 + m.animOffset) * 2;
 
-  ctx.fillStyle = "#5c0b0b";
-  ctx.beginPath();
-  ctx.arc(0, 0, 18 + pulse, 0, Math.PI * 2);
-  ctx.fill();
+  if (m.type === "wolf") {
+    // 1-3. GÜN: ORMAN KURDU 🐺
+    ctx.fillStyle = "#5d6d7e";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 18 + pulse, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-  ctx.fillStyle = "#871515";
-  ctx.beginPath();
-  ctx.arc(0, 0, 14, 0, Math.PI * 2);
-  ctx.fill();
+    // Kurt Kafası & Sivri Kulaklar
+    ctx.fillStyle = "#34495e";
+    ctx.beginPath();
+    ctx.arc(8, -4, 8, 0, Math.PI * 2);
+    ctx.fill();
 
-  ctx.fillStyle = "#2c0404";
-  ctx.beginPath();
-  ctx.moveTo(-10, -12); ctx.lineTo(-18, -24); ctx.lineTo(-4, -16); ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(10, -12); ctx.lineTo(18, -24); ctx.lineTo(4, -16); ctx.fill();
+    ctx.fillStyle = "#2c3e50";
+    ctx.beginPath();
+    ctx.moveTo(6, -10); ctx.lineTo(9, -18); ctx.lineTo(13, -10); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(3, -9); ctx.lineTo(5, -16); ctx.lineTo(8, -9); ctx.fill();
 
-  ctx.fillStyle = m.isChasing ? "#ff0000" : "#f39c12";
-  ctx.beginPath();
-  ctx.arc(-5, -4, 4, 0, Math.PI * 2);
-  ctx.arc(5, -4, 4, 0, Math.PI * 2);
-  ctx.fill();
+    // Parlayan Sarı/Kırmızı Göz
+    ctx.fillStyle = m.isChasing ? "#e74c3c" : "#f1c40f";
+    ctx.beginPath();
+    ctx.arc(10, -5, 2.5, 0, Math.PI * 2);
+    ctx.fill();
 
-  ctx.fillStyle = "#ffffff";
-  ctx.beginPath();
-  ctx.moveTo(-7, 4); ctx.lineTo(-4, 10); ctx.lineTo(-1, 4);
-  ctx.moveTo(-1, 4); ctx.lineTo(2, 10); ctx.lineTo(5, 4);
-  ctx.fill();
+    // Kuyruk
+    ctx.strokeStyle = "#34495e";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(-14, 0); ctx.lineTo(-24, 6); ctx.stroke();
+  } else if (m.type === "bear") {
+    // 4-6. GÜN: VAHŞİ İBLİS AYI 🐻
+    ctx.fillStyle = "#4a2311";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 24 + pulse, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Kafa & Yuvarlak Kulaklar
+    ctx.fillStyle = "#331607";
+    ctx.beginPath();
+    ctx.arc(12, -4, 11, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(10, -14, 4, 0, Math.PI * 2);
+    ctx.arc(16, -12, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Kırmızı Öfkeli Gözler
+    ctx.fillStyle = "#ff0000";
+    ctx.beginPath();
+    ctx.arc(15, -5, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pençeler
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(8, 14, 3, 5);
+    ctx.fillRect(13, 14, 3, 5);
+  } else {
+    // 7-10. GÜN: KARANLIK GÖLGE İBLİSİ 👹
+    ctx.fillStyle = "#4a0000";
+    ctx.beginPath();
+    ctx.arc(0, 0, 18 + pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#780000";
+    ctx.beginPath();
+    ctx.arc(0, 0, 13, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Boynuzlar
+    ctx.fillStyle = "#1a0000";
+    ctx.beginPath();
+    ctx.moveTo(-9, -10); ctx.lineTo(-17, -23); ctx.lineTo(-3, -15); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(9, -10); ctx.lineTo(17, -23); ctx.lineTo(3, -15); ctx.fill();
+
+    // Alevli Gözler
+    ctx.fillStyle = m.isChasing ? "#ff0000" : "#f39c12";
+    ctx.beginPath();
+    ctx.arc(-4, -4, 4, 0, Math.PI * 2);
+    ctx.arc(5, -4, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dişler
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.moveTo(-6, 4); ctx.lineTo(-3, 10); ctx.lineTo(0, 4);
+    ctx.moveTo(0, 4); ctx.lineTo(3, 10); ctx.lineTo(6, 4);
+    ctx.fill();
+  }
 
   ctx.restore();
 }
 
-// BELİRGİN VE GERÇEKÇİ AĞAÇ ÇİZİMİ
+// NET, ORGANİK KÖKLÜ VE GÖLGELİ AĞAÇ ÇİZİMİ
 function drawTree(t) {
   let shakeOffset = 0;
   if (t.shake > 0) {
@@ -1162,68 +1257,72 @@ function drawTree(t) {
   // Can Barı
   if (t.hp < t.maxHp) {
     ctx.fillStyle = "rgba(0,0,0,0.7)";
-    ctx.fillRect(px - 22, py - 60, 44, 6);
+    ctx.fillRect(px - 22, py - 68, 44, 6);
     ctx.fillStyle = "#2ecc71";
-    ctx.fillRect(px - 22, py - 60, (44 * t.hp) / t.maxHp, 6);
+    ctx.fillRect(px - 22, py - 68, (44 * t.hp) / t.maxHp, 6);
   }
 
-  // Zemin Gölgesi
+  // 1. Zemin Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
   ctx.beginPath();
-  ctx.ellipse(px, py + 26, 32, 12, 0, 0, Math.PI * 2);
+  ctx.ellipse(px, py + 30, 36, 12, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // Kalın Ağaç Gövdesi ve Kökler
+  // 2. Kökler ve Kalın Gövde
   ctx.fillStyle = "#4a2912";
   ctx.beginPath();
-  ctx.moveTo(px - 12, py - 6);
-  ctx.lineTo(px - 18, py + 26);
-  ctx.lineTo(px + 18, py + 26);
-  ctx.lineTo(px + 12, py - 6);
+  ctx.moveTo(px - 10, py - 12);
+  ctx.lineTo(px - 20, py + 30); // Sol kök
+  ctx.lineTo(px - 8, py + 26);
+  ctx.lineTo(px, py + 30);      // Orta kök
+  ctx.lineTo(px + 8, py + 26);
+  ctx.lineTo(px + 20, py + 30); // Sağ kök
+  ctx.lineTo(px + 10, py - 12);
   ctx.fill();
 
-  // Gövde Kabuk Çizgileri
+  // 3. Gövde Dokusu ve Dallanma
   ctx.strokeStyle = "#321a08";
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(px - 4, py + 2);
-  ctx.lineTo(px - 6, py + 22);
-  ctx.moveTo(px + 4, py + 4);
-  ctx.lineTo(px + 5, py + 24);
+  ctx.moveTo(px - 4, py + 4); ctx.lineTo(px - 6, py + 24);
+  ctx.moveTo(px + 4, py + 6); ctx.lineTo(px + 6, py + 25);
+  // Yukarı uzanan ince dallar
+  ctx.moveTo(px - 6, py - 10); ctx.lineTo(px - 16, py - 26);
+  ctx.moveTo(px + 6, py - 10); ctx.lineTo(px + 16, py - 26);
   ctx.stroke();
 
-  // Katmanlı Meşe Yaprak Tacı
-  const c1 = t.leafVariation === 0 ? "#145a32" : "#196f3d";
-  const c2 = t.leafVariation === 0 ? "#1e8449" : "#27ae60";
-  const c3 = t.leafVariation === 0 ? "#2ecc71" : "#58d68d";
+  // 4. Katmanlı Yaprak Kümeleri
+  const c1 = t.leafVariation === 0 ? "#145a32" : (t.leafVariation === 1 ? "#196f3d" : "#0e4d26");
+  const c2 = t.leafVariation === 0 ? "#1e8449" : (t.leafVariation === 1 ? "#27ae60" : "#177538");
+  const c3 = t.leafVariation === 0 ? "#2ecc71" : (t.leafVariation === 1 ? "#58d68d" : "#28b463");
 
-  // Alt Koyu Katman
+  // Alt Koyu Taç
   ctx.fillStyle = c1;
   ctx.beginPath();
-  ctx.arc(px, py - 8, 36, 0, Math.PI * 2);
+  ctx.arc(px, py - 16, 38, 0, Math.PI * 2);
   ctx.fill();
 
-  // Orta Gölgeli Katmanlar
+  // Orta Gölgeli Yan Yapraklar
   ctx.fillStyle = c2;
   ctx.beginPath();
-  ctx.arc(px - 14, py - 18, 26, 0, Math.PI * 2);
-  ctx.arc(px + 14, py - 18, 26, 0, Math.PI * 2);
+  ctx.arc(px - 16, py - 26, 26, 0, Math.PI * 2);
+  ctx.arc(px + 16, py - 26, 26, 0, Math.PI * 2);
   ctx.fill();
 
-  // Tepe Açık Yeşil Katman
+  // Tepe Canlı Yaprak Tacı
   ctx.fillStyle = c3;
   ctx.beginPath();
-  ctx.arc(px, py - 28, 22, 0, Math.PI * 2);
+  ctx.arc(px, py - 38, 24, 0, Math.PI * 2);
   ctx.fill();
 
-  // Işık ve Elma/Pırıltı Detayları
+  // Güneş Pırıltısı / Yaprak Işıltısı
   ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
   ctx.beginPath();
-  ctx.arc(px - 6, py - 32, 10, 0, Math.PI * 2);
+  ctx.arc(px - 6, py - 44, 10, 0, Math.PI * 2);
   ctx.fill();
 }
 
-// BELİRGİN ÇOKGEN KAYA ÇİZİMİ
+// DAHA KÜÇÜK, DERLİ TOPLU VE GÖLGELİ KAYA ÇİZİMİ
 function drawRock(r) {
   let shakeOffset = 0;
   if (r.shake > 0) {
@@ -1237,15 +1336,15 @@ function drawRock(r) {
   // Can Barı
   if (r.hp < r.maxHp) {
     ctx.fillStyle = "rgba(0,0,0,0.7)";
-    ctx.fillRect(px - 20, py - 40, 40, 6);
+    ctx.fillRect(px - 18, py - 32, 36, 5);
     ctx.fillStyle = "#3498db";
-    ctx.fillRect(px - 20, py - 40, (40 * r.hp) / r.maxHp, 6);
+    ctx.fillRect(px - 18, py - 32, (36 * r.hp) / r.maxHp, 5);
   }
 
   // Zemin Gölgesi
   ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
   ctx.beginPath();
-  ctx.ellipse(px, py + 18, 28, 10, 0, 0, Math.PI * 2);
+  ctx.ellipse(px, py + 14, 22, 8, 0, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.save();
@@ -1261,7 +1360,7 @@ function drawRock(r) {
   ctx.closePath();
   ctx.fill();
 
-  // Işık Alan Üst Faset (Açık Gri)
+  // Açık Gri Üst Faset (Işık Alan)
   ctx.fillStyle = "#7f8c8d";
   ctx.beginPath();
   ctx.moveTo(r.points[1].x, r.points[1].y);
@@ -1277,13 +1376,11 @@ function drawRock(r) {
   ctx.lineTo(0, 0);
   ctx.fill();
 
-  // Maden Pırıltısı / Çatlak
+  // Maden Çatlağı
   ctx.strokeStyle = "#17202a";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(-5, -6);
-  ctx.lineTo(2, 4);
-  ctx.lineTo(9, 1);
+  ctx.moveTo(-4, -4); ctx.lineTo(2, 3); ctx.lineTo(7, 0);
   ctx.stroke();
 
   ctx.restore();
