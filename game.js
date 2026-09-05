@@ -30,6 +30,9 @@ const toolCycleBtn = document.getElementById("btn-tool-cycle");
 const playerNameInput = document.getElementById("player-name-input");
 const achBanner = document.getElementById("achievement-banner");
 const achDesc = document.getElementById("ach-desc");
+const welcomeToast = document.getElementById("welcome-toast");
+const completedNotice = document.getElementById("completed-notice");
+const btnResetSave = document.getElementById("btn-reset-save");
 
 // 10 Günlük Başarımlar
 const ACHIEVEMENTS = [
@@ -68,7 +71,6 @@ function bakeGround() {
   gctx.fillStyle = "#264817";
   gctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  // Çimen ve çiçek pırıltıları
   for (let i = 0; i < 900; i++) {
     const gx = Math.random() * (WORLD_WIDTH - 60) + 30;
     const gy = Math.random() * (WORLD_HEIGHT - 60) + 30;
@@ -95,31 +97,26 @@ function bakeGround() {
 
   // Göllerin Sahil ve Katmanlı Su Çizimi
   lakes.forEach(l => {
-    // Islak Kum / Sahil
     gctx.fillStyle = "#a88956";
     gctx.beginPath();
     gctx.ellipse(l.x, l.y, l.rx + 28, l.ry + 28, 0, 0, Math.PI * 2);
     gctx.fill();
 
-    // Sığ Turkuaz Su
     gctx.fillStyle = "#16a085";
     gctx.beginPath();
     gctx.ellipse(l.x, l.y, l.rx + 8, l.ry + 8, 0, 0, Math.PI * 2);
     gctx.fill();
 
-    // Derin Mavi Su
     gctx.fillStyle = "#1a5276";
     gctx.beginPath();
     gctx.ellipse(l.x, l.y, l.rx - 14, l.ry - 14, 0, 0, Math.PI * 2);
     gctx.fill();
 
-    // Merkez Dip Koyu Su
     gctx.fillStyle = "#0e2f44";
     gctx.beginPath();
     gctx.ellipse(l.x, l.y, l.rx - 45, l.ry - 45, 0, 0, Math.PI * 2);
     gctx.fill();
 
-    // Dalga / Köpük Parıltıları
     gctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
     gctx.lineWidth = 2.5;
     gctx.beginPath();
@@ -127,7 +124,6 @@ function bakeGround() {
     gctx.stroke();
   });
 
-  // Izgara Çizgileri
   gctx.strokeStyle = "rgba(0,0,0,0.03)";
   gctx.lineWidth = 2;
   for (let x = 0; x < WORLD_WIDTH; x += 140) {
@@ -137,7 +133,6 @@ function bakeGround() {
     gctx.beginPath(); gctx.moveTo(0, y); gctx.lineTo(WORLD_WIDTH, y); gctx.stroke();
   }
 
-  // Sınır Çizgisi
   gctx.strokeStyle = "#c0392b";
   gctx.lineWidth = 8;
   gctx.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -145,7 +140,7 @@ function bakeGround() {
 bakeGround();
 
 // ==========================================
-// SES VE GECE GERİLİM MÜZİĞİ MOTORU
+// SES VE GECE MÜZİĞİ MOTORU
 // ==========================================
 let audioCtx = null;
 let nightMusicTimer = null;
@@ -160,13 +155,32 @@ function initAudio() {
   }
 }
 
-// Gece Gerilim Müziği (Düşük Frekans Kalp Atışı & Tehdit Bası)
+// Açılış Karşılama Melodisi
+function playWelcomeMelody() {
+  initAudio();
+  try {
+    const notes = [440, 554, 659, 880, 1108];
+    notes.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.09);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime + i * 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.09 + 0.35);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + i * 0.09);
+      osc.stop(audioCtx.currentTime + i * 0.09 + 0.35);
+    });
+  } catch(e) {}
+}
+
+// Gece Kalp Atışı & Gerilim Bası
 function playTensionBeat() {
   if (!audioCtx || !isNight || isDead || gameWon) return;
   try {
     const now = audioCtx.currentTime;
 
-    // Kalp atışı / Tok gerilim vuruşu
     const osc1 = audioCtx.createOscillator();
     const gain1 = audioCtx.createGain();
     osc1.type = "sine";
@@ -179,7 +193,6 @@ function playTensionBeat() {
     osc1.start(now);
     osc1.stop(now + 0.18);
 
-    // İkinci yankı (Heartbeat 2. vuruş)
     const osc2 = audioCtx.createOscillator();
     const gain2 = audioCtx.createGain();
     osc2.type = "triangle";
@@ -192,7 +205,6 @@ function playTensionBeat() {
     osc2.start(now + 0.22);
     osc2.stop(now + 0.42);
 
-    // Düşük Uğultu Akoru
     const drone = audioCtx.createOscillator();
     const droneGain = audioCtx.createGain();
     drone.type = "sawtooth";
@@ -421,6 +433,32 @@ let gameRunning = false;
 let isDead = false;
 let gameWon = false;
 
+// Kalıcı Bitirme Kontrolü (Map 2 için)
+const isPreviouslyCompleted = localStorage.getItem("survival_game_completed") === "true";
+if (isPreviouslyCompleted) {
+  completedNotice.classList.remove("hidden");
+}
+
+btnResetSave.addEventListener("click", (e) => {
+  e.stopPropagation();
+  localStorage.removeItem("survival_game_completed");
+  completedNotice.classList.add("hidden");
+  alert("Oyun kaydı sıfırlandı! 1. Günden baştan başlayabilirsiniz.");
+});
+
+// Sayfa ilk tıklandığında hoş geldin sesi ve bildirimi
+let welcomeTriggered = false;
+function triggerWelcome() {
+  if (welcomeTriggered) return;
+  welcomeTriggered = true;
+  welcomeToast.classList.remove("hidden");
+  playWelcomeMelody();
+  setTimeout(() => {
+    welcomeToast.classList.add("hidden");
+  }, 4500);
+}
+window.addEventListener("pointerdown", triggerWelcome, { once: true });
+
 // Cinsiyet Seçimi
 let selectedGender = "male";
 const genderMaleBtn = document.getElementById("gender-male");
@@ -507,7 +545,7 @@ let meats = [];
 let base = null;
 let escapePortal = null;
 
-const CYCLE_DURATION = 3600; // 60 saniye
+const CYCLE_DURATION = 3600; // 60 saniye döngü
 let cycleTicks = 0;
 let dayCount = 1;
 let isNight = false;
@@ -526,6 +564,9 @@ function startGame(device) {
   if (gameRunning) return;
   initAudio();
   currentDevice = device;
+
+  // Eğer oyunu daha önce bitirdiyse 10. günde zaferle açılır (2. harita için bekletir)
+  const isFinished = localStorage.getItem("survival_game_completed") === "true";
 
   const inputName = playerNameInput.value.trim();
   player.name = inputName.length > 0 ? inputName : "Savaşçı";
@@ -554,9 +595,17 @@ function startGame(device) {
     pcControls.classList.remove("hidden");
   }
 
-  resetGame(true);
+  if (isFinished) {
+    // 10. Gün zafer ekranında kalır
+    dayCount = 10;
+    gameWon = true;
+    resetGame(false);
+  } else {
+    resetGame(true);
+    triggerAchievement(0);
+  }
+
   gameRunning = true;
-  triggerAchievement(0);
   requestAnimationFrame(gameLoop);
 }
 
@@ -582,7 +631,9 @@ window.addEventListener("keydown", (e) => {
   if (k === "3") { player.activeToolIndex = 2; toolCycleBtn.innerText = TOOLS[2].name; }
   if (k === "b") buildOrRepairBase();
   if (e.key === " " && !isDead && !gameWon) attackOrGather();
-  if ((isDead || gameWon) && (e.key === "Enter" || e.key === " ")) resetGame(false);
+  if ((isDead || gameWon) && (e.key === "Enter" || e.key === " ")) {
+    if (!gameWon) resetGame(false);
+  }
 });
 window.addEventListener("keyup", (e) => {
   keys[e.key.toLowerCase()] = false;
@@ -685,6 +736,8 @@ function attackOrGather() {
       if (escapePortal.hp <= 0) {
         escapePortal.broken = true;
         gameWon = true;
+        // Kalıcı Olarak Bitirildiğini Kaydet
+        localStorage.setItem("survival_game_completed", "true");
         stopNightTensionMusic();
         SFX.victory();
       }
@@ -750,7 +803,6 @@ function attackOrGather() {
   updateUI();
 }
 
-// Engel ve Ayrım Kontrolleri
 const MIN_SEPARATION = 95;
 
 function isCollidingWithLakes(x, y, padding = 30) {
@@ -831,15 +883,19 @@ function spawnRock() {
   }
 }
 
-// CHECKPOINT SİSTEMİ
 function resetGame(forceFirstDay = false) {
   resizeCanvas();
   stopNightTensionMusic();
 
   if (forceFirstDay) {
     dayCount = 1;
+    gameWon = false;
   } else {
-    if (dayCount >= 5) {
+    // Eğer oyun bitirilmişse 10. günde kalsın
+    if (localStorage.getItem("survival_game_completed") === "true") {
+      dayCount = 10;
+      gameWon = true;
+    } else if (dayCount >= 5) {
       dayCount = 5;
       player.wood = Math.max(player.wood, 15);
       player.stone = Math.max(player.stone, 8);
@@ -864,7 +920,6 @@ function resetGame(forceFirstDay = false) {
   cycleTicks = 0;
   isNight = false;
   isDead = false;
-  gameWon = false;
 
   trees = [];
   rocks = [];
@@ -882,7 +937,6 @@ function resetGame(forceFirstDay = false) {
   updateUI();
 }
 
-// ÜS KURMA VE TAMİR SİSTEMİ (300 CAN)
 function buildOrRepairBase() {
   if (isDead || gameWon) return;
 
@@ -891,9 +945,9 @@ function buildOrRepairBase() {
       player.wood -= 10;
       player.stone -= 5;
       base = {
-        x: player.x - 70,
-        y: player.y - 70,
-        size: 140,
+        x: player.x - 75,
+        y: player.y - 75,
+        size: 150,
         hp: 300,
         maxHp: 300
       };
@@ -1036,7 +1090,6 @@ function handleWorld() {
     timeEl.style.color = "#e74c3c";
   }
 
-  // Gece/Gündüz Geçişi
   if (cycleTicks >= CYCLE_DURATION) {
     cycleTicks = 0;
     isNight = !isNight;
@@ -1179,7 +1232,7 @@ function updateUI() {
 }
 
 // ==========================================
-// ÇİZİMLER (GELİŞMİŞ EV, YAPILAR, KARAKTER)
+// GELİŞMİŞ ÇİZİMLER (SIĞINAK, PORTAL, DOĞA)
 // ==========================================
 
 function drawPlayer(x, y) {
@@ -1217,6 +1270,7 @@ function drawPlayer(x, y) {
   ctx.fillRect(2, 10 - bob, 6, 8);
 
   if (player.gender === "male") {
+    // Erkek Şövalye
     ctx.fillStyle = "#2471a3";
     ctx.fillRect(-10, -10 + bob, 20, 22);
     ctx.fillStyle = "#1b4f72";
@@ -1232,6 +1286,7 @@ function drawPlayer(x, y) {
     ctx.arc(0, -23 + bob, 11, Math.PI, Math.PI * 2);
     ctx.fill();
   } else {
+    // Kadın Avcı
     ctx.fillStyle = "#922b21";
     ctx.fillRect(-9, -10 + bob, 18, 22);
     ctx.fillStyle = "#d35400";
@@ -1356,78 +1411,84 @@ function drawRuins() {
   });
 }
 
-// ŞIK VE GERÇEKÇİ EV (KULÜBE) ÇİZİMİ
+// ULTRA GELİŞMİŞ EV / DAĞ SIĞINAĞI ÇİZİMİ
 function drawBaseStructure(b) {
   const bx = b.x;
   const by = b.y;
   const bs = b.size;
 
-  // 1. Zemin Gölgesi
-  ctx.fillStyle = "rgba(0,0,0,0.4)";
-  ctx.fillRect(bx - 10, by + bs - 6, bs + 20, 20);
+  // Zemin Geniş Gölgesi
+  ctx.fillStyle = "rgba(0,0,0,0.38)";
+  ctx.fillRect(bx - 12, by + bs - 6, bs + 24, 22);
 
-  // 2. Taş Temel
-  ctx.fillStyle = "#5d6d7e";
-  ctx.fillRect(bx - 4, by + bs - 14, bs + 8, 14);
+  // Taş Sağlam Temel
+  ctx.fillStyle = "#47525e";
+  ctx.fillRect(bx - 6, by + bs - 16, bs + 12, 16);
 
-  // 3. Ahşap Kütük Duvarlar
-  ctx.fillStyle = "#5c3818";
-  ctx.fillRect(bx, by, bs, bs - 10);
+  // Ahşap Kütük Duvarlar
+  ctx.fillStyle = "#543013";
+  ctx.fillRect(bx, by, bs, bs - 12);
 
-  // Kütük Katman Çizgileri
-  ctx.strokeStyle = "#38200b";
-  ctx.lineWidth = 2.5;
-  for (let y = by + 18; y < by + bs - 14; y += 18) {
+  // Yatay Kütük Dokuları
+  ctx.strokeStyle = "#361c07";
+  ctx.lineWidth = 3;
+  for (let y = by + 20; y < by + bs - 14; y += 20) {
     ctx.beginPath();
     ctx.moveTo(bx, y);
     ctx.lineTo(bx + bs, y);
     ctx.stroke();
   }
 
-  // 4. Sağda Taş Baca
-  ctx.fillStyle = "#7f8c8d";
-  ctx.fillRect(bx + bs - 32, by - 48, 18, 38);
-  ctx.fillStyle = "#34495e";
-  ctx.fillRect(bx + bs - 35, by - 52, 24, 6);
+  // Taş Baca ve Duman Efekti
+  ctx.fillStyle = "#636e72";
+  ctx.fillRect(bx + bs - 36, by - 52, 20, 42);
+  ctx.fillStyle = "#2d3436";
+  ctx.fillRect(bx + bs - 39, by - 56, 26, 6);
 
-  // 5. Üçgen Kiremit Çatı
-  ctx.fillStyle = "#935116";
+  // Bacadan Çıkan Minik Duman Pırıltısı
+  const smokeBob = (Date.now() * 0.002) % 1;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
   ctx.beginPath();
-  ctx.moveTo(bx - 16, by + 4);
-  ctx.lineTo(bx + bs / 2, by - 44);
-  ctx.lineTo(bx + bs + 16, by + 4);
+  ctx.arc(bx + bs - 26, by - 64 - smokeBob * 12, 5 + smokeBob * 3, 0, Math.PI * 2);
   ctx.fill();
 
-  // Çatı Kenar Saçağı
-  ctx.strokeStyle = "#6e2c00";
+  // Katmanlı Kiremit Çatı
+  ctx.fillStyle = "#873600";
+  ctx.beginPath();
+  ctx.moveTo(bx - 18, by + 6);
+  ctx.lineTo(bx + bs / 2, by - 48);
+  ctx.lineTo(bx + bs + 18, by + 6);
+  ctx.fill();
+
+  ctx.strokeStyle = "#512200";
   ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.moveTo(bx - 18, by + 4);
-  ctx.lineTo(bx + bs / 2, by - 46);
-  ctx.lineTo(bx + bs + 18, by + 4);
+  ctx.moveTo(bx - 20, by + 6);
+  ctx.lineTo(bx + bs / 2, by - 50);
+  ctx.lineTo(bx + bs + 20, by + 6);
   ctx.stroke();
 
-  // 6. Ahşap Kapı
-  ctx.fillStyle = "#2c1a0c";
-  ctx.fillRect(bx + bs / 2 - 16, by + bs - 46, 32, 36);
-  ctx.fillStyle = "#d4ac0d"; // Kapı Kulpu
+  // Ahşap Kapı
+  ctx.fillStyle = "#241407";
+  ctx.fillRect(bx + bs / 2 - 18, by + bs - 50, 36, 40);
+  ctx.fillStyle = "#f1c40f";
   ctx.beginPath();
-  ctx.arc(bx + bs / 2 + 8, by + bs - 28, 3, 0, Math.PI * 2);
+  ctx.arc(bx + bs / 2 + 9, by + bs - 30, 3.5, 0, Math.PI * 2);
   ctx.fill();
 
-  // 7. Pencereler (Gece ışık saçar)
+  // Pencereler (Gece Sarı Işıklı)
   const windowColor = isNight ? "#f39c12" : "#85c1e9";
   ctx.fillStyle = windowColor;
-  ctx.fillRect(bx + 14, by + 26, 22, 22);
-  ctx.fillRect(bx + bs - 36, by + 26, 22, 22);
+  ctx.fillRect(bx + 16, by + 28, 24, 24);
+  ctx.fillRect(bx + bs - 40, by + 28, 24, 24);
 
-  // Pencere Çıtaları
-  ctx.strokeStyle = "#2c1a0c";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(bx + 14, by + 26, 22, 22);
-  ctx.strokeRect(bx + bs - 36, by + 26, 22, 22);
+  // Pencere Çerçeveleri
+  ctx.strokeStyle = "#241407";
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(bx + 16, by + 28, 24, 24);
+  ctx.strokeRect(bx + bs - 40, by + 28, 24, 24);
 
-  // Güvenli Bölge Işıltısı
+  // Güvenli Bölge Alan Işıltısı
   ctx.fillStyle = isNight ? "rgba(243, 156, 18, 0.12)" : "rgba(46, 204, 113, 0.1)";
   ctx.fillRect(bx, by, bs, bs);
 }
@@ -1687,7 +1748,6 @@ function renderMinimap() {
   const scaleX = minimapCanvas.width / WORLD_WIDTH;
   const scaleY = minimapCanvas.height / WORLD_HEIGHT;
 
-  // Göller
   mctx.fillStyle = "#2980b9";
   lakes.forEach(l => {
     mctx.beginPath();
@@ -1695,25 +1755,21 @@ function renderMinimap() {
     mctx.fill();
   });
 
-  // Üs
   if (base && base.hp > 0) {
     mctx.fillStyle = "#9b59b6";
     mctx.fillRect(base.x * scaleX, base.y * scaleY, 7, 7);
   }
 
-  // 10. Gün Kapısı
   if (escapePortal && !escapePortal.broken) {
     mctx.fillStyle = "#f1c40f";
     mctx.fillRect(escapePortal.x * scaleX - 3, escapePortal.y * scaleY - 3, 8, 8);
   }
 
-  // Canavarlar
   mctx.fillStyle = "#e74c3c";
   monsters.forEach(m => {
     mctx.fillRect(m.x * scaleX, m.y * scaleY, 3, 3);
   });
 
-  // Oyuncu
   mctx.fillStyle = "#2ecc71";
   mctx.beginPath();
   mctx.arc(player.x * scaleX, player.y * scaleY, 3.5, 0, Math.PI * 2);
@@ -1730,7 +1786,7 @@ function render() {
 
   drawRuins();
 
-  // CAN BARLI VE YENİ GÖRÜNÜMLÜ EV
+  // CAN BARLI GELİŞMİŞ SIĞINAK
   if (base && base.hp > 0) {
     ctx.fillStyle = "rgba(0,0,0,0.7)";
     ctx.fillRect(base.x, base.y - 18, base.size, 8);
@@ -1756,7 +1812,6 @@ function render() {
   if (!isDead && !gameWon) drawPlayer(player.x, player.y);
   monsters.forEach(m => drawMonster(m));
 
-  // Gece Işık ve Karanlık Filtresi (Ay Işığı Aurası)
   if (isNight) {
     ctx.fillStyle = "rgba(5, 10, 18, 0.72)";
     ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -1766,27 +1821,31 @@ function render() {
 
   renderMinimap();
 
-  // ZAFER EKRANI
+  // KALICI ZAFER EKRANI (2. HARİTA İÇİN KİLİTLİ)
   if (gameWon) {
-    ctx.fillStyle = "rgba(10, 25, 10, 0.95)";
+    ctx.fillStyle = "rgba(10, 25, 10, 0.96)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = "#f1c40f";
-    ctx.font = "bold 38px sans-serif";
+    ctx.font = "bold 36px sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("🎉 KIZINI KURTARDIN! 🎉", canvas.width / 2, canvas.height / 2 - 40);
+    ctx.fillText("🎉 KIZINI KURTARDIN! 🎉", canvas.width / 2, canvas.height / 2 - 50);
 
     ctx.fillStyle = "#2ecc71";
-    ctx.font = "bold 22px sans-serif";
-    ctx.fillText(`${player.name}, 10 Günlük Kabusu Sona Erdirdin!`, canvas.width / 2, canvas.height / 2 + 10);
+    ctx.font = "bold 20px sans-serif";
+    ctx.fillText(`${player.name}, 1. Bölümü Başarıyla Tamamladın!`, canvas.width / 2, canvas.height / 2);
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "16px sans-serif";
-    ctx.fillText("Bu lanetli diyardan sağ salim kaçmayı başardınız.", canvas.width / 2, canvas.height / 2 + 45);
+    ctx.font = "15px sans-serif";
+    ctx.fillText("Bu diyardan kaçtınız. Kaydınız güvenle saklandı!", canvas.width / 2, canvas.height / 2 + 35);
 
-    ctx.fillStyle = "#ecf0f1";
-    ctx.font = "14px sans-serif";
-    ctx.fillText(currentDevice !== "pc" ? "Yeniden oynamak için ekrana dokun" : "Yeniden oynamak için BOŞLUK veya ENTER'a bas", canvas.width / 2, canvas.height / 2 + 90);
+    ctx.fillStyle = "#3498db";
+    ctx.font = "bold 17px sans-serif";
+    ctx.fillText("🚀 BÖLÜM 2: YENİ HARİTA ÇOK YAKINDA GELİYOR!", canvas.width / 2, canvas.height / 2 + 75);
+
+    ctx.fillStyle = "#888888";
+    ctx.font = "13px sans-serif";
+    ctx.fillText("Oyunu baştan oynamak isterseniz ana menüden kaydı sıfırlayabilirsiniz.", canvas.width / 2, canvas.height / 2 + 115);
   }
 
   // ÖLÜM EKRANI
@@ -1815,7 +1874,7 @@ function render() {
 
 window.addEventListener("touchstart", (e) => {
   initAudio();
-  if (isDead || gameWon) {
+  if (isDead) {
     e.preventDefault();
     resetGame(false);
   }
