@@ -71,7 +71,7 @@ const commentsContainer = document.getElementById("comments-container");
 const btnPlayAgain = document.getElementById("btn-play-again");
 
 // ==========================================
-// BAŞARIMLAR
+// BAŞARIMLAR (1. VE 2. HARİTA)
 // ==========================================
 const MAP1_ACHIEVEMENTS = [
   "1. Gün: Hayat Adamı (Kurtlar Yakında!)",
@@ -100,7 +100,7 @@ const MAP2_ACHIEVEMENTS = [
   "11. Gün: BÜYÜK BOSS SAVAŞI & ZAFER!"
 ];
 
-// Göller ve Kalıntılar
+// Statik Göller ve Girilemeyen Antik Yapılar
 const lakes = [
   { x: 1050, y: 950, rx: 240, ry: 170 },
   { x: 3250, y: 2250, rx: 280, ry: 200 },
@@ -212,7 +212,7 @@ function bakeGround2() {
 bakeGround2();
 
 // ==========================================
-// SES MOTORU
+// SES MOTORU & GERİLİM MÜZİĞİ
 // ==========================================
 let audioCtx = null;
 let nightMusicTimer = null;
@@ -1242,28 +1242,32 @@ function spawnRock() {
   }
 }
 
+// ========================================================
+// YENİLENMİŞ CANAVAR SAYISI (GÜN GEÇTİKÇE ÇOĞALAN SÜRÜ)
+// ========================================================
 function spawnNightMonsters() {
   if (currentMap === 1) {
     let monsterType = "wolf";
-    let count = 4 + dayCount * 2;
+    // Gün geçtikçe artan yoğun canavar sayısı (1. gün 10 başlar, 10. gün 40'a ulaşır)
+    let count = 8 + dayCount * 3;
     let baseSpeed = 2.4;
     let baseHp = 70;
 
     if (dayCount >= 4 && dayCount <= 6) {
       monsterType = "bear";
-      count = 3 + Math.floor(dayCount * 1.5);
-      baseSpeed = 1.9;
-      baseHp = 130;
+      count = 6 + dayCount * 2;
+      baseSpeed = 1.95;
+      baseHp = 135;
     } else if (dayCount >= 7) {
       monsterType = "demon";
-      count = 5 + dayCount * 2;
-      baseSpeed = 2.6;
-      baseHp = 110;
+      count = 10 + dayCount * 3;
+      baseSpeed = 2.65;
+      baseHp = 115;
     }
 
     for (let i = 0; i < count; i++) {
       let spawnAngle = Math.random() * Math.PI * 2;
-      let spawnDist = 580 + Math.random() * 320;
+      let spawnDist = 650 + Math.random() * 350; // Asla evin dibinde doğmaz
       monsters.push({
         type: monsterType,
         x: player.x + Math.cos(spawnAngle) * spawnDist,
@@ -1279,12 +1283,13 @@ function spawnNightMonsters() {
       });
     }
   } else if (currentMap === 2) {
+    // 2. Harita: Cehennem Yaratıkları & 6-8. Gün Büyük Yılan İstilası
     let isSnakeDay = dayCount >= 6 && dayCount <= 8;
-    let count = isSnakeDay ? 12 : 7;
+    let count = isSnakeDay ? (20 + dayCount * 3) : (12 + dayCount * 2);
 
     for (let i = 0; i < count; i++) {
       let spawnAngle = Math.random() * Math.PI * 2;
-      let spawnDist = 600 + Math.random() * 350;
+      let spawnDist = 680 + Math.random() * 380;
       let mType = isSnakeDay ? "snake" : "hellhound";
 
       monsters.push({
@@ -1316,6 +1321,40 @@ function spawnHellBoss() {
     attackCooldown: 0
   };
   SFX.nightWarning();
+}
+
+// ========================================================
+// EV FİZİĞİ: CANAVARLARIN ASLA İÇERİ GİREMEMESİ (AABB RESOLVE)
+// ========================================================
+function resolveBaseCollision(m) {
+  if (!base || base.hp <= 0) return;
+
+  const minX = base.x - m.size;
+  const maxX = base.x + base.size + m.size;
+  const minY = base.y - m.size;
+  const maxY = base.y + base.size + m.size;
+
+  // Canavar evin kutusunun içinde mi?
+  if (m.x > minX && m.x < maxX && m.y > minY && m.y < maxY) {
+    // En yakın duvara geri it
+    const distLeft = m.x - minX;
+    const distRight = maxX - m.x;
+    const distTop = m.y - minY;
+    const distBottom = maxY - m.y;
+    const minDist = Math.min(distLeft, distRight, distTop, distBottom);
+
+    if (minDist === distLeft) m.x = minX;
+    else if (minDist === distRight) m.x = maxX;
+    else if (minDist === distTop) m.y = minY;
+    else m.y = maxY;
+
+    // Yaratık sadece dış duvarlara vurabilir
+    base.hp -= 0.12;
+    if (base.hp <= 0) {
+      base.hp = 0;
+      SFX.mineRock();
+    }
+  }
 }
 
 // ==========================================
@@ -1435,6 +1474,29 @@ function handleWorld() {
 
   const playerSafe = isInsideBase(player);
 
+  // Canavarların birbirini itmesi ve duvara çarpmalarını çözme
+  for (let i = 0; i < monsters.length; i++) {
+    for (let j = i + 1; j < monsters.length; j++) {
+      let m1 = monsters[i];
+      let m2 = monsters[j];
+      let cdx = m2.x - m1.x;
+      let cdy = m2.y - m1.y;
+      let cdist = Math.hypot(cdx, cdy);
+      if (cdist < m1.size + m2.size && cdist > 0.01) {
+        let overlap = (m1.size + m2.size - cdist) / 2;
+        let angle = Math.atan2(cdy, cdx);
+        m1.x -= Math.cos(angle) * overlap;
+        m1.y -= Math.sin(angle) * overlap;
+        m2.x += Math.cos(angle) * overlap;
+        m2.y += Math.sin(angle) * overlap;
+      }
+    }
+    // İtme sonrası evin içine sızmaları kesinlikle engellenir
+    resolveBaseCollision(monsters[i]);
+  }
+
+  const DETECTION_RADIUS = 380;
+
   for (let i = monsters.length - 1; i >= 0; i--) {
     let m = monsters[i];
 
@@ -1445,7 +1507,7 @@ function handleWorld() {
     }
 
     let pDist = Math.hypot(player.x - m.x, player.y - m.y);
-    if (pDist < 400) m.isChasing = true;
+    if (pDist < DETECTION_RADIUS) m.isChasing = true;
 
     let moveAngle;
     let currentSpeed = m.speed;
@@ -1454,6 +1516,7 @@ function handleWorld() {
       let targetX = player.x;
       let targetY = player.y;
       if (playerSafe && base) {
+        // Oyuncu evdeyse yaratıklar evin merkezine koşar ve duvarlara takılır
         targetX = base.x + base.size / 2;
         targetY = base.y + base.size / 2;
       }
@@ -1471,6 +1534,10 @@ function handleWorld() {
     m.x += Math.cos(moveAngle) * currentSpeed;
     m.y += Math.sin(moveAngle) * currentSpeed;
 
+    // Duvar çarpışmasını tekrar zorla
+    resolveBaseCollision(m);
+
+    // Oyuncuya Hasar: OYUNCU EVİN İÇİNDEYSE HASAR ALMASI İMKANSIZDIR!
     if (!playerSafe && m.isChasing) {
       let dist = Math.hypot(player.x - m.x, player.y - m.y);
       if (dist < player.size + m.size) {
@@ -1586,9 +1653,16 @@ function buildOrRepairBase() {
   }
 }
 
+// Oyuncunun evin içinde olup olmadığını garantileyen toleranslı kontrol
 function isInsideBase(target) {
   if (!base || base.hp <= 0) return false;
-  return target.x >= base.x && target.x <= base.x + base.size && target.y >= base.y && target.y <= base.y + base.size;
+  const pad = 12;
+  return (
+    target.x >= base.x - pad &&
+    target.x <= base.x + base.size + pad &&
+    target.y >= base.y - pad &&
+    target.y <= base.y + base.size + pad
+  );
 }
 
 // OYUNCU HAREKETİ VE GÖL/LAV ENGELİ
@@ -1631,6 +1705,12 @@ function updatePlayer() {
   if (player.isAttacking) {
     player.attackTimer--;
     if (player.attackTimer <= 0) player.isAttacking = false;
+  }
+
+  // Evin içindeyken hızlı can dolumu
+  if (isInsideBase(player) && player.health < player.maxHealth) {
+    player.health = Math.min(player.maxHealth, player.health + 0.25);
+    updateUI();
   }
 
   camera.x = player.x - canvas.width / 2;
@@ -1821,6 +1901,7 @@ function drawRock(r) {
   ctx.save();
   ctx.translate(px, py);
 
+  // Koyu Taban
   ctx.fillStyle = "#424949";
   ctx.beginPath();
   ctx.moveTo(r.points[0].x, r.points[0].y);
@@ -1830,6 +1911,7 @@ function drawRock(r) {
   ctx.closePath();
   ctx.fill();
 
+  // Açık Gri Üst Faset
   ctx.fillStyle = "#7f8c8d";
   ctx.beginPath();
   ctx.moveTo(r.points[1].x, r.points[1].y);
@@ -1837,6 +1919,7 @@ function drawRock(r) {
   ctx.lineTo(0, 0);
   ctx.fill();
 
+  // Alt Koyu Faset
   ctx.fillStyle = "#2c3e50";
   ctx.beginPath();
   ctx.moveTo(r.points[4].x, r.points[4].y);
@@ -1844,6 +1927,7 @@ function drawRock(r) {
   ctx.lineTo(0, 0);
   ctx.fill();
 
+  // Maden Damarı
   ctx.strokeStyle = "#17202a";
   ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -2183,7 +2267,7 @@ function drawBaseStructure(b) {
   const by = b.y;
   const bs = b.size;
 
-  // 1. Çatının Üstünde Devasa ve Belirgin Can Barı
+  // Çatının Üstünde Devasa ve Belirgin Can Barı
   const barY = by - 56;
   ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
   ctx.fillRect(bx - 10, barY, bs + 20, 12);
@@ -2204,7 +2288,7 @@ function drawBaseStructure(b) {
   ctx.fillText(`🏠 Sığınak Canı: ${Math.floor(b.hp)} / ${b.maxHp}`, bx + bs / 2, barY - 6);
   ctx.shadowBlur = 0;
 
-  // 2. Ev Gövdesi ve Çatı
+  // Ev Gövdesi ve Çatı
   ctx.fillStyle = "rgba(0,0,0,0.38)";
   ctx.fillRect(bx - 12, by + bs - 6, bs + 24, 22);
 
