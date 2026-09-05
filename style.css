@@ -8,7 +8,7 @@
 }
 
 body {
-  background-color: #0d0d0d;
+  background-color: #0a0a0a;
   color: #fff;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   display: flex;
@@ -22,18 +22,17 @@ body {
   display: none !important;
 }
 
-/* Tam Ekran Butonu */
 #btn-fullscreen {
   position: absolute;
-  top: 12px;
-  right: 16px;
-  background: rgba(30, 30, 30, 0.8);
+  top: 10px;
+  right: 14px;
+  background: rgba(30, 30, 30, 0.85);
   color: #fff;
   border: 1px solid #555;
   border-radius: 8px;
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
+  width: 38px;
+  height: 38px;
+  font-size: 18px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -45,6 +44,17 @@ body {
 #btn-fullscreen:active {
   background: #3498db;
   transform: scale(0.92);
+}
+
+#minimapCanvas {
+  position: absolute;
+  top: 55px;
+  right: 14px;
+  background: rgba(10, 10, 10, 0.75);
+  border: 2px solid #555;
+  border-radius: 8px;
+  z-index: 60;
+  pointer-events: none;
 }
 
 /* Dikey Ekran Uyarısı */
@@ -88,7 +98,7 @@ body {
   }
 }
 
-/* Cihaz Seçim Menüsü */
+/* Giriş Menüsü */
 #device-modal {
   position: fixed;
   top: 0;
@@ -104,12 +114,12 @@ body {
 
 .modal-box {
   background: #202020;
-  padding: 28px;
+  padding: 26px;
   border-radius: 14px;
   text-align: center;
   box-shadow: 0 8px 30px rgba(0,0,0,0.8);
   max-width: 90%;
-  width: 330px;
+  width: 320px;
   border: 1px solid #3a3a3a;
 }
 
@@ -127,12 +137,11 @@ body {
   padding: 3px 8px;
   border-radius: 10px;
   margin-bottom: 16px;
-  letter-spacing: 0.5px;
 }
 
 .modal-box p {
   color: #bbb;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   font-size: 14px;
 }
 
@@ -153,7 +162,7 @@ body {
   cursor: pointer;
 }
 
-/* Oyun Ekranı */
+/* Oyun Konteyneri */
 #game-container {
   position: relative;
   display: flex;
@@ -167,16 +176,16 @@ body {
 /* Üst Arayüz */
 #ui-bar {
   position: absolute;
-  top: 10px;
+  top: 8px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   justify-content: center;
-  gap: 10px;
-  background: rgba(15, 15, 15, 0.85);
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 13px;
+  gap: 8px;
+  background: rgba(15, 15, 15, 0.88);
+  padding: 5px 14px;
+  border-radius: 18px;
+  font-size: 12px;
   font-weight: bold;
   z-index: 50;
   border: 1px solid #444;
@@ -187,8 +196,8 @@ body {
   white-space: nowrap;
 }
 
-canvas {
-  background: #44782b;
+canvas#gameCanvas {
+  background: #3a6824;
   display: block;
   max-width: 100%;
   max-height: 100vh;
@@ -197,12 +206,15 @@ canvas {
 
 .hint-text {
   position: absolute;
-  bottom: 8px;
-  font-size: 12px;
-  color: #888;
+  bottom: 6px;
+  font-size: 11px;
+  color: #aaa;
+  background: rgba(0,0,0,0.65);
+  padding: 4px 12px;
+  border-radius: 6px;
 }
 
-/* Mobil Katman */
+/* Mobil Kontroller */
 #mobile-overlay {
   position: absolute;
   top: 0;
@@ -216,9 +228,9 @@ canvas {
 #joystick-zone {
   position: absolute;
   bottom: 25px;
-  left: 35px;
-  width: 130px;
-  height: 130px;
+  left: 30px;
+  width: 125px;
+  height: 125px;
   pointer-events: auto;
 }
 
@@ -235,8 +247,8 @@ canvas {
 }
 
 #joystick-knob {
-  width: 52px;
-  height: 52px;
+  width: 50px;
+  height: 50px;
   background: rgba(52, 152, 219, 0.9);
   border: 2px solid #fff;
   border-radius: 50%;
@@ -247,19 +259,23 @@ canvas {
 
 #action-zone {
   position: absolute;
-  bottom: 30px;
-  right: 35px;
+  bottom: 20px;
+  right: 25px;
   display: flex;
-  gap: 16px;
+  gap: 10px;
   pointer-events: auto;
+  align-items: flex-end;
+}
+
+.action-column {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .touch-action-btn {
-  width: 68px;
-  height: 68px;
   border-radius: 50%;
   border: 2px solid rgba(255, 255, 255, 0.7);
-  font-size: 26px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -268,19 +284,42 @@ canvas {
 }
 
 .attack-btn {
+  width: 70px;
+  height: 70px;
+  font-size: 28px;
   background: rgba(231, 76, 60, 0.9);
 }
 
-.attack-btn:active {
-  background: rgb(192, 57, 43);
-  transform: scale(0.92);
-}
-
 .build-btn {
+  width: 48px;
+  height: 48px;
+  font-size: 19px;
   background: rgba(230, 126, 34, 0.9);
 }
 
-.build-btn:active {
-  background: rgb(211, 84, 0);
-  transform: scale(0.92);
+.sub-btn {
+  width: 42px;
+  height: 42px;
+  font-size: 16px;
+  background: rgba(52, 73, 94, 0.9);
+}
+
+/* Alet Seçim Butonları */
+.tool-btn {
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+  background: #34495e;
+  border: 2px solid #7f8c8d;
+}
+
+.active-tool {
+  border-color: #f1c40f !important;
+  background: #2c3e50 !important;
+  box-shadow: 0 0 10px #f1c40f !important;
+  transform: scale(1.08);
+}
+
+.touch-action-btn:active {
+  transform: scale(0.9);
 }
