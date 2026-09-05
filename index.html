@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>2D Hayatta Kalma</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Cihaz Seçim Ekranı -->
+  <div id="device-modal">
+    <div class="modal-box">
+      <h2>Oyun Modunu Seç</h2>
+      <p>Nasıl oynamak istiyorsun?</p>
+      <div class="modal-buttons">
+        <button id="btn-pc" class="choice-btn">💻 Bilgisayar (Klavye)</button>
+        <button id="btn-mobile" class="choice-btn">📱 Mobil (Dokunmatik)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ana Oyun Alanı -->
+  <div id="game-container" class="hidden">
+    <!-- Üst Arayüz -->
+    <div id="ui-bar">
+      <div class="stat-box">❤️ Can: <span id="health-val">100</span></div>
+      <div class="stat-box">⏳ Durum: <span id="time-val">Gündüz</span></div>
+      <div class="stat-box">🌲 Odun: <span id="wood-val">0</span></div>
+      <div class="stat-box">🪨 Taş: <span id="stone-val">0</span></div>
+    </div>
+
+    <!-- Oyun Tuvali -->
+    <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+    <!-- Bilgisayar Kontrol İpucu -->
+    <div id="pc-controls" class="hint-text">
+      Kontroller: <b>W, A, S, D</b> veya <b>Yön Tuşları</b> | Üs Yap: <b>B</b> tuşu (10 Odun, 5 Taş)
+    </div>
+
+    <!-- Mobil Dokunmatik Kontroller -->
+    <div id="mobile-controls" class="hidden">
+      <div class="d-pad">
+        <button id="btn-up" class="touch-btn">▲</button>
+        <div class="d-pad-row">
+          <button id="btn-left" class="touch-btn">◀</button>
+          <button id="btn-down" class="touch-btn">▼</button>
+          <button id="btn-right" class="touch-btn">▶</button>
+        </div>
+      </div>
+      <div class="action-pad">
+        <button id="btn-build" class="action-btn">🏠 Üs Kur</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
