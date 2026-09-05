@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>2D Hayatta Kalma</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -13,46 +13,49 @@
     <div class="rotate-box">
       <div class="rotate-icon">📱 ➔ 🔄</div>
       <h3>Lütfen Telefonu Yan Çevirin</h3>
-      <p>En iyi oyun deneyimi için yatay ekran gereklidir.</p>
+      <p>En iyi deneyim için yatay ekran gereklidir.</p>
     </div>
   </div>
 
-  <!-- Cihaz Seçim Menüsü -->
+  <!-- Giriş Menüsü -->
   <div id="device-modal">
     <div class="modal-box">
       <h2>2D Hayatta Kalma</h2>
-      <div class="version-tag">Sürüm: v1.2.0 (Aletler & Süre)</div>
-      <p>Nasıl oynamak istiyorsun?</p>
+      <div class="version-tag">v1.3.0 (Mobil Sadeleştirme)</div>
+      <p>Oyun Modunu Seç:</p>
       <div class="modal-buttons">
         <button id="btn-pc" class="choice-btn">💻 Bilgisayar (Klavye)</button>
-        <button id="btn-mobile" class="choice-btn">📱 Mobil (Joystick)</button>
+        <button id="btn-mobile" class="choice-btn">📱 Mobil (Dokunmatik)</button>
       </div>
     </div>
   </div>
 
   <!-- Ana Oyun Alanı -->
   <div id="game-container" class="hidden">
-    <button id="btn-fullscreen" title="Tam Ekran Yap">⛶</button>
+    <!-- Sağ Üst Panel: Tam Ekran & Tek Alet Değiştirme Tuşu -->
+    <div id="top-right-controls">
+      <button id="btn-tool-cycle" class="hud-btn" title="Aleti Değiştir">⚔️ Kılıç</button>
+      <button id="btn-fullscreen" class="hud-btn" title="Tam Ekran">⛶</button>
+    </div>
 
-    <!-- Üst Arayüz -->
+    <!-- Üst Skor / Durum Barı -->
     <div id="ui-bar">
       <div class="stat-box">❤️ <span id="health-val">100</span></div>
       <div class="stat-box">📅 <span id="day-val">1. Gün</span></div>
-      <div class="stat-box">⏳ <span id="time-val">Gündüz (0:25)</span></div>
+      <div class="stat-box">⏳ <span id="time-val">Gündüz (0:30)</span></div>
       <div class="stat-box">🌲 <span id="wood-val">0</span></div>
       <div class="stat-box">🪨 <span id="stone-val">0</span></div>
-      <div class="stat-box">🛠️ <span id="active-tool-val">Kılıç</span></div>
     </div>
 
-    <!-- Mini Harita Tuvali -->
-    <canvas id="minimapCanvas" width="130" height="98"></canvas>
+    <!-- Mini Harita -->
+    <canvas id="minimapCanvas" width="110" height="82"></canvas>
 
     <!-- Oyun Tuvali -->
     <canvas id="gameCanvas" width="800" height="500"></canvas>
 
     <!-- Bilgisayar Kontrol İpucu -->
     <div id="pc-controls" class="hint-text">
-      <b>W,A,S,D:</b> Git | <b>Space/Tık:</b> Vur | <b>1:</b> ⚔️ Kılıç | <b>2:</b> 🪓 Balta | <b>3:</b> ⛏️ Kazma | <b>B:</b> Üs | <b>C:</b> Ateş | <b>T:</b> Tuzak
+      <b>W,A,S,D:</b> Hareket | <b>Space/Tık:</b> Vur/Topla | <b>Q veya 1,2,3:</b> Alet Değiştir | <b>B:</b> Üs (10O, 5T)
     </div>
 
     <!-- Mobil Arayüz Katmanı -->
@@ -64,26 +67,10 @@
         </div>
       </div>
 
-      <!-- Sağ Alt: Aksiyon ve Alet Menüsü -->
+      <!-- Sağ Alt: Sadece 2 Tane Ferah Buton -->
       <div id="action-zone">
-        <!-- Alet Seçim Slotları (1, 2, 3) -->
-        <div class="action-column tool-bar">
-          <button id="btn-tool-sword" class="touch-action-btn tool-btn active-tool" title="Kılıç">⚔️</button>
-          <button id="btn-tool-axe" class="touch-action-btn tool-btn" title="Balta">🪓</button>
-          <button id="btn-tool-pick" class="touch-action-btn tool-btn" title="Kazma">⛏️</button>
-        </div>
-
-        <!-- Yapılar -->
-        <div class="action-column">
-          <button id="btn-fire" class="touch-action-btn sub-btn" title="Ateş">🔥</button>
-          <button id="btn-trap" class="touch-action-btn sub-btn" title="Tuzak">🪵</button>
-          <button id="btn-build" class="touch-action-btn build-btn" title="Üs">🏠</button>
-        </div>
-
-        <!-- Büyük Vuruş Butonu -->
-        <div class="action-column">
-          <button id="btn-attack" class="touch-action-btn attack-btn" title="Vur/Topla">⚡</button>
-        </div>
+        <button id="btn-build" class="touch-action-btn build-btn">🏠</button>
+        <button id="btn-attack" class="touch-action-btn attack-btn">⚔️</button>
       </div>
     </div>
   </div>
