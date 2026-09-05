@@ -14,13 +14,14 @@ const woodEl = document.getElementById("wood-val");
 const stoneEl = document.getElementById("stone-val");
 const deviceModal = document.getElementById("device-modal");
 const gameContainer = document.getElementById("game-container");
-const mobileControls = document.getElementById("mobile-controls");
+const mobileOverlay = document.getElementById("mobile-overlay");
 const pcControls = document.getElementById("pc-controls");
 
 let isMobile = false;
 let gameRunning = false;
 let isDead = false;
 
+// Cihaz Seçimi
 document.getElementById("btn-pc").addEventListener("click", () => startGame(false));
 document.getElementById("btn-mobile").addEventListener("click", () => startGame(true));
 
@@ -29,8 +30,9 @@ function startGame(mobile) {
   deviceModal.classList.add("hidden");
   gameContainer.classList.remove("hidden");
   if (isMobile) {
-    mobileControls.classList.remove("hidden");
+    mobileOverlay.classList.remove("hidden");
     pcControls.classList.add("hidden");
+    setupJoystick();
   }
   resetGame();
   gameRunning = true;
@@ -47,20 +49,24 @@ const player = {
   maxHealth: 100,
   wood: 0,
   stone: 0,
-  facing: 1, // 1: sağ, -1: sol
+  facing: 1,
   isAttacking: false,
   attackTimer: 0
 };
+
+// Joystick Vektörleri
+let joystickVector = { x: 0, y: 0 };
 
 const camera = { x: 0, y: 0 };
 let trees = [];
 let rocks = [];
 let monsters = [];
-let meats = []; // Düşen etler
+let meats = [];
 let base = null;
 let gameTick = 0;
 let isNight = false;
 
+// Klavye Kontrolleri (PC)
 const keys = {};
 window.addEventListener("keydown", (e) => {
   keys[e.key.toLowerCase()] = true;
@@ -72,47 +78,102 @@ window.addEventListener("keyup", (e) => {
   keys[e.key.toLowerCase()] = false;
 });
 
-// PC Tıklama ile Saldırı
+// PC Mouse Saldırısı
 canvas.addEventListener("mousedown", () => {
   if (!isDead && gameRunning) attack();
 });
 
-// Mobil Tuş Bağlantıları
-function setupTouchButton(id, key) {
-  const btn = document.getElementById(id);
-  btn.addEventListener("touchstart", (e) => { e.preventDefault(); keys[key] = true; });
-  btn.addEventListener("touchend", (e) => { e.preventDefault(); keys[key] = false; });
-  btn.addEventListener("mousedown", () => { keys[key] = true; });
-  btn.addEventListener("mouseup", () => { keys[key] = false; });
+// Mobil Joystick Mekaniği
+function setupJoystick() {
+  const zone = document.getElementById("joystick-zone");
+  const knob = document.getElementById("joystick-knob");
+  const maxRadius = 45; // Maksimum esneme mesafesi
+  let touchId = null;
+  let centerX = 0;
+  let centerY = 0;
+
+  function updateTouch(touch) {
+    const dx = touch.clientX - centerX;
+    const dy = touch.clientY - centerY;
+    const dist = Math.hypot(dx, dy);
+    const angle = Math.atan2(dy, dx);
+
+    const clampedDist = Math.min(dist, maxRadius);
+    const knobX = Math.cos(angle) * clampedDist;
+    const knobY = Math.sin(angle) * clampedDist;
+
+    knob.style.transform = `translate(${knobX}px, ${knobY}px)`;
+
+    // Oyuncuya giden hız oranı (-1 ile 1 arası)
+    joystickVector.x = knobX / maxRadius;
+    joystickVector.y = knobY / maxRadius;
+
+    if (Math.abs(joystickVector.x) > 0.1) {
+      player.facing = joystickVector.x > 0 ? 1 : -1;
+    }
+  }
+
+  zone.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    if (touchId !== null) return;
+    const touch = e.changedTouches[0];
+    touchId = touch.identifier;
+    const rect = zone.getBoundingClientRect();
+    centerX = rect.left + rect.width / 2;
+    centerY = rect.top + rect.height / 2;
+    updateTouch(touch);
+  }, { passive: false });
+
+  window.addEventListener("touchmove", (e) => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === touchId) {
+        updateTouch(e.changedTouches[i]);
+        break;
+      }
+    }
+  }, { passive: false });
+
+  function endJoystick(e) {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === touchId) {
+        touchId = null;
+        knob.style.transform = `translate(0px, 0px)`;
+        joystickVector = { x: 0, y: 0 };
+        break;
+      }
+    }
+  }
+
+  window.addEventListener("touchend", endJoystick);
+  window.addEventListener("touchcancel", endJoystick);
+
+  // Mobil Aksiyon Butonları
+  document.getElementById("btn-attack").addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    if (!isDead) attack();
+  });
+  document.getElementById("btn-build").addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    buildBase();
+  });
 }
-setupTouchButton("btn-up", "w");
-setupTouchButton("btn-down", "s");
-setupTouchButton("btn-left", "a");
-setupTouchButton("btn-right", "d");
-document.getElementById("btn-build").addEventListener("click", buildBase);
-document.getElementById("btn-attack").addEventListener("click", () => {
-  if (!isDead) attack();
-});
 
 // Saldırı Eylemi
 function attack() {
   if (player.isAttacking) return;
   player.isAttacking = true;
-  player.attackTimer = 12; // 12 kare kılıç savrulur
+  player.attackTimer = 12;
 
-  const attackRange = 65;
-  // Baktığı yöndeki canavarlara vur
+  const attackRange = 70;
   monsters.forEach(m => {
     let dx = m.x - player.x;
     let dy = m.y - player.y;
     let dist = Math.hypot(dx, dy);
 
-    // Mesafe ve önünde olma kontrolü
-    let inFront = (player.facing === 1 && dx > -10) || (player.facing === -1 && dx < 10);
+    let inFront = (player.facing === 1 && dx > -15) || (player.facing === -1 && dx < 15);
     if (dist < attackRange && inFront) {
-      m.health -= 35; // Kılıç vuruş gücü
-      // Canavarı hafifçe geriye savur (Knockback)
-      m.x += (player.facing * 30);
+      m.health -= 35;
+      m.x += player.facing * 35;
     }
   });
 }
@@ -141,6 +202,7 @@ function resetGame() {
   player.stone = 0;
   player.isAttacking = false;
   player.attackTimer = 0;
+  joystickVector = { x: 0, y: 0 };
   base = null;
   monsters = [];
   meats = [];
@@ -177,24 +239,38 @@ function isInsideBase(target) {
   );
 }
 
+// Oyuncu Hareketi (Klavye + Mobil Joystick Hibrit)
 function updatePlayer() {
   if (isDead) return;
 
-  if (keys["w"] || keys["arrowup"]) player.y -= player.speed;
-  if (keys["s"] || keys["arrowdown"]) player.y += player.speed;
-  if (keys["a"] || keys["arrowleft"]) { player.x -= player.speed; player.facing = -1; }
-  if (keys["d"] || keys["arrowright"]) { player.x += player.speed; player.facing = 1; }
+  let moveX = 0;
+  let moveY = 0;
 
+  // Klavye kontrolü
+  if (keys["w"] || keys["arrowup"]) moveY -= 1;
+  if (keys["s"] || keys["arrowdown"]) moveY += 1;
+  if (keys["a"] || keys["arrowleft"]) { moveX -= 1; player.facing = -1; }
+  if (keys["d"] || keys["arrowright"]) { moveX += 1; player.facing = 1; }
+
+  // Mobil Joystick ekleme
+  if (isMobile) {
+    moveX += joystickVector.x;
+    moveY += joystickVector.y;
+  }
+
+  // Hareketi uygula
+  player.x += moveX * player.speed;
+  player.y += moveY * player.speed;
+
+  // Harita sınırları
   player.x = Math.max(player.size, Math.min(WORLD_WIDTH - player.size, player.x));
   player.y = Math.max(player.size, Math.min(WORLD_HEIGHT - player.size, player.y));
 
-  // Saldırı sayacı
   if (player.isAttacking) {
     player.attackTimer--;
     if (player.attackTimer <= 0) player.isAttacking = false;
   }
 
-  // Üste can yenilenmesi
   if (isInsideBase(player) && player.health < player.maxHealth) {
     player.health = Math.min(player.maxHealth, player.health + 0.15);
     updateUI();
@@ -209,7 +285,6 @@ function updatePlayer() {
 function checkResources() {
   if (isDead) return;
 
-  // Ağaç
   for (let i = trees.length - 1; i >= 0; i--) {
     let dist = Math.hypot(player.x - trees[i].x, player.y - trees[i].y);
     if (dist < player.size + trees[i].size) {
@@ -219,7 +294,6 @@ function checkResources() {
     }
   }
 
-  // Taş
   for (let i = rocks.length - 1; i >= 0; i--) {
     let dist = Math.hypot(player.x - rocks[i].x, player.y - rocks[i].y);
     if (dist < player.size + rocks[i].size) {
@@ -229,7 +303,6 @@ function checkResources() {
     }
   }
 
-  // Yerdeki Etleri Toplama (+25 Can)
   for (let i = meats.length - 1; i >= 0; i--) {
     let dist = Math.hypot(player.x - meats[i].x, player.y - meats[i].y);
     if (dist < player.size + meats[i].size) {
@@ -249,7 +322,6 @@ function handleWorld() {
     if (rocks.length < 20) spawnRock();
   }
 
-  // Gece / Gündüz
   if (gameTick % 700 === 0) {
     isNight = !isNight;
     timeEl.innerText = isNight ? "Gece 🌙" : "Gündüz ☀️";
@@ -280,7 +352,6 @@ function handleWorld() {
   for (let i = monsters.length - 1; i >= 0; i--) {
     let m = monsters[i];
 
-    // Canı biten canavar ölür ve et bırakır
     if (m.health <= 0) {
       meats.push({ x: m.x, y: m.y, size: 14 });
       monsters.splice(i, 1);
@@ -327,13 +398,11 @@ function updateUI() {
   stoneEl.innerText = player.stone;
 }
 
-// Çizimler
 function drawPlayer(x, y) {
   ctx.save();
   ctx.translate(x, y);
   if (player.facing === -1) ctx.scale(-1, 1);
 
-  // Kılıç savurma efekti (Slash arc)
   if (player.isAttacking) {
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 4;
@@ -342,21 +411,17 @@ function drawPlayer(x, y) {
     ctx.stroke();
   }
 
-  // Gövde
   ctx.fillStyle = "#2980b9";
   ctx.fillRect(-10, -14, 20, 26);
 
-  // Kafa
   ctx.fillStyle = "#f1c40f";
   ctx.beginPath();
   ctx.arc(0, -22, 10, 0, Math.PI * 2);
   ctx.fill();
 
-  // Göz
   ctx.fillStyle = "#2c3e50";
   ctx.fillRect(3, -24, 3, 3);
 
-  // Kılıç Çizimi (Saldırıda öne savrulur)
   ctx.save();
   if (player.isAttacking) {
     ctx.rotate(0.5);
@@ -377,26 +442,22 @@ function drawMonster(m) {
   ctx.save();
   ctx.translate(m.x, m.y);
 
-  // Can barı
   ctx.fillStyle = "#c0392b";
   ctx.fillRect(-16, -28, 32, 5);
   ctx.fillStyle = "#2ecc71";
   ctx.fillRect(-16, -28, (32 * m.health) / m.maxHealth, 5);
 
-  // Gövde
   ctx.fillStyle = "#8e1b1b";
   ctx.beginPath();
   ctx.arc(0, 0, 18, 0, Math.PI * 2);
   ctx.fill();
 
-  // Parlayan Gözler
   ctx.fillStyle = "#ff0000";
   ctx.beginPath();
   ctx.arc(-5, -4, 4, 0, Math.PI * 2);
   ctx.arc(5, -4, 4, 0, Math.PI * 2);
   ctx.fill();
 
-  // Sivri Dişler
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
   ctx.moveTo(-6, 6); ctx.lineTo(-3, 12); ctx.lineTo(0, 6);
@@ -481,7 +542,7 @@ function render() {
   ctx.restore();
 
   if (isDead) {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#e74c3c";
     ctx.font = "bold 38px sans-serif";
@@ -493,8 +554,12 @@ function render() {
   }
 }
 
-canvas.addEventListener("click", () => {
-  if (isDead) resetGame();
+// Mobilde ekrana dokunarak dirilme
+window.addEventListener("touchstart", (e) => {
+  if (isDead) {
+    e.preventDefault();
+    resetGame();
+  }
 });
 
 function gameLoop() {
