@@ -8,37 +8,48 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
-// Mini Harita
 const minimapCanvas = document.getElementById("minimapCanvas");
 const mctx = minimapCanvas.getContext("2d");
 
-// ==========================================
-// HARİTA ÖLÇÜLERİ
-// ==========================================
-let currentMap = 1; // 1: Orman / Doğa, 2: Cehennem
+let currentMap = 1; 
 let WORLD_WIDTH = 4400;
 let WORLD_HEIGHT = 3200;
 
-// UI Elementleri
+// ==========================================
+// PARÇACIK (PARTICLE) SİSTEMİ - HAVA & AYAK İZİ
+// ==========================================
+let weatherParticles = [];
+for (let i = 0; i < 100; i++) {
+  weatherParticles.push({
+    x: Math.random() * 3000,
+    y: Math.random() * 3000,
+    vx: (Math.random() - 0.5) * 1.5,
+    vy: Math.random() * 4 + 2,
+    size: Math.random() * 2 + 1,
+    opacity: Math.random() * 0.5 + 0.2
+  });
+}
+let trails = [];
+
+// UI
 const healthEl = document.getElementById("health-val");
 const maxHealthEl = document.getElementById("max-health-val");
 const mapNameEl = document.getElementById("map-name-val");
 const dayEl = document.getElementById("day-val");
 const timeEl = document.getElementById("time-val");
-
-const woodStat = document.getElementById("wood-stat");
-const stoneStat = document.getElementById("stone-stat");
 const woodEl = document.getElementById("wood-val");
 const stoneEl = document.getElementById("stone-val");
-
-const copperStat = document.getElementById("copper-stat");
-const silverStat = document.getElementById("silver-stat");
-const ironStat = document.getElementById("iron-stat");
-const goldStat = document.getElementById("gold-stat");
 const copperEl = document.getElementById("copper-val");
 const silverEl = document.getElementById("silver-val");
 const ironEl = document.getElementById("iron-val");
 const goldEl = document.getElementById("gold-val");
+
+const woodStat = document.getElementById("wood-stat");
+const stoneStat = document.getElementById("stone-stat");
+const copperStat = document.getElementById("copper-stat");
+const silverStat = document.getElementById("silver-stat");
+const ironStat = document.getElementById("iron-stat");
+const goldStat = document.getElementById("gold-stat");
 
 const deviceModal = document.getElementById("device-modal");
 const gameContainer = document.getElementById("game-container");
@@ -51,18 +62,17 @@ const achBanner = document.getElementById("achievement-banner");
 const achDesc = document.getElementById("ach-desc");
 const welcomeToast = document.getElementById("welcome-toast");
 
-// Diyalog ve Üretim Elementleri
+// Diyalog & Crafting
 const storyDialogue = document.getElementById("story-dialogue");
 const dialogueSpeaker = document.getElementById("dialogue-speaker");
 const dialogueText = document.getElementById("dialogue-text");
 const dialogueCloseBtn = document.getElementById("dialogue-close-btn");
-
 const craftingModal = document.getElementById("crafting-modal");
 const btnCraftMenu = document.getElementById("btn-craft-menu");
 const btnCraftTouch = document.getElementById("btn-craft-touch");
 const craftCloseBtn = document.getElementById("craft-close-btn");
 
-// Hatıra Defteri
+// Hatıra
 const guestbookModal = document.getElementById("guestbook-modal");
 const commentAuthor = document.getElementById("comment-author");
 const commentMessage = document.getElementById("comment-message");
@@ -70,134 +80,62 @@ const btnSubmitComment = document.getElementById("btn-submit-comment");
 const commentsContainer = document.getElementById("comments-container");
 const btnPlayAgain = document.getElementById("btn-play-again");
 
-// ==========================================
-// BAŞARIM LİSTELERİ
-// ==========================================
 const MAP1_ACHIEVEMENTS = [
-  "1. Gün: Hayat Adamı (Kurtlar Yakında!)",
-  "2. Gün: Zorluklara Göğüs Germek",
-  "3. Gün: Vahşi Kurtların Efendisi",
-  "4. Gün: Ayıların Hükümdarlığı Başladı!",
-  "5. Gün: Yarı Yolu Devirdik! (KONTROL NOKTASI)",
-  "6. Gün: Ayı Avcısı",
-  "7. Gün: Karanlık İblisler Uyandı!",
-  "8. Gün: Cehennem Şafağı",
-  "9. Gün: Sonun Başlangıcı",
-  "10. Gün: KIZINI KURTARDIN! Cehennem Kapısı Açıldı!"
+  "1. Gün: Hayat Adamı", "2. Gün: Zorluklara Göğüs Germek", "3. Gün: Vahşi Kurtların Efendisi",
+  "4. Gün: Ayıların Hükümdarlığı Başladı!", "5. Gün: Yarı Yolu Devirdik!", "6. Gün: Ayı Avcısı",
+  "7. Gün: Karanlık İblisler Uyandı!", "8. Gün: Cehennem Şafağı", "9. Gün: Sonun Başlangıcı",
+  "10. Gün: KIZINI KURTARDIN! Geçit Açıldı!"
 ];
 
 const MAP2_ACHIEVEMENTS_MAP = {
-  1: "1. Gün: Cehenneme Ayak Bastın! (Gün Sıfırlandı)",
-  3: "3. Gün: Maden Toplayıcısı (Bakır & Gümüş)",
+  1: "1. Gün: Cehenneme Ayak Bastın!",
+  3: "3. Gün: Maden Toplayıcısı",
   6: "6. Gün: DİKKAT! Zehirli Yılan İstilası!",
   8: "8. Gün: Yılanların Zehrine Direniş!",
-  12: "12. Gün: Ağır Madenler (Demir & Altın)",
+  12: "12. Gün: Ağır Madenler",
   15: "15. Gün: Cehennem Zırhları Kuşanıldı!",
   20: "20. Gün: KUTSAL İMAN TAŞI GÖKTEN DÜŞTÜ!",
   25: "25. Gün: Kıyamet Yaklaşıyor...",
-  30: "30. Gün: BÜYÜK BOSS SAVAŞI & EBEDİ KURTULUŞ!"
+  30: "30. Gün: BÜYÜK BOSS SAVAŞI & KURTULUŞ!"
 };
 
-// ==========================================
-// GÖLLER VE KALINTILAR
-// ==========================================
-const lakes = [
-  { x: 1050, y: 950, rx: 240, ry: 170 },
-  { x: 3250, y: 2250, rx: 280, ry: 200 },
-  { x: 1350, y: 2350, rx: 200, ry: 150 }
-];
+const lakes = [{ x: 1050, y: 950, rx: 240, ry: 170 }, { x: 3250, y: 2250, rx: 280, ry: 200 }, { x: 1350, y: 2350, rx: 200, ry: 150 }];
+const ruins = [{ type: "tower", x: 900, y: 1800, w: 90, h: 90 }, { type: "castle", x: 3100, y: 900, w: 140, h: 120 }, { type: "altar", x: 2200, y: 2400, w: 110, h: 110 }];
+const lavaLakes = [{ x: 1200, y: 1100, rx: 320, ry: 220 }, { x: 3800, y: 2400, rx: 360, ry: 240 }, { x: 2600, y: 1600, rx: 250, ry: 180 }, { x: 1500, y: 2800, rx: 280, ry: 200 }];
 
-const ruins = [
-  { type: "tower", x: 900, y: 1800, w: 90, h: 90 },
-  { type: "castle", x: 3100, y: 900, w: 140, h: 120 },
-  { type: "altar", x: 2200, y: 2400, w: 110, h: 110 }
-];
-
-const lavaLakes = [
-  { x: 1200, y: 1100, rx: 320, ry: 220 },
-  { x: 3800, y: 2400, rx: 360, ry: 240 },
-  { x: 2600, y: 1600, rx: 250, ry: 180 },
-  { x: 1500, y: 2800, rx: 280, ry: 200 }
-];
-
-// Zemin Önbellekleri (Performans / Optimizasyon)
-const groundCanvas1 = document.createElement("canvas");
-groundCanvas1.width = 4400;
-groundCanvas1.height = 3200;
-const gctx1 = groundCanvas1.getContext("2d");
-
-const groundCanvas2 = document.createElement("canvas");
-groundCanvas2.width = 5200;
-groundCanvas2.height = 3800;
-const gctx2 = groundCanvas2.getContext("2d");
+const groundCanvas1 = document.createElement("canvas"); groundCanvas1.width = 4400; groundCanvas1.height = 3200; const gctx1 = groundCanvas1.getContext("2d");
+const groundCanvas2 = document.createElement("canvas"); groundCanvas2.width = 5200; groundCanvas2.height = 3800; const gctx2 = groundCanvas2.getContext("2d");
 
 function bakeGround1() {
-  gctx1.fillStyle = "#264817";
-  gctx1.fillRect(0, 0, 4400, 3200);
-
+  gctx1.fillStyle = "#264817"; gctx1.fillRect(0, 0, 4400, 3200);
   for (let i = 0; i < 900; i++) {
-    const gx = Math.random() * (4400 - 60) + 30;
-    const gy = Math.random() * (3200 - 60) + 30;
-    const type = Math.floor(Math.random() * 3);
-    const size = Math.random() * 4 + 4;
-    gctx1.fillStyle = type === 0 ? "#1b3510" : (type === 1 ? "#335721" : "#f1c40f");
-    gctx1.beginPath();
-    gctx1.arc(gx, gy, size, 0, Math.PI * 2);
-    gctx1.fill();
+    const gx = Math.random() * (4400 - 60) + 30; const gy = Math.random() * (3200 - 60) + 30; const type = Math.floor(Math.random() * 3); const size = Math.random() * 4 + 4;
+    gctx1.fillStyle = type === 0 ? "#1b3510" : (type === 1 ? "#335721" : "#f1c40f"); gctx1.beginPath(); gctx1.arc(gx, gy, size, 0, Math.PI * 2); gctx1.fill();
   }
-
   lakes.forEach(l => {
-    gctx1.fillStyle = "#a88956";
-    gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx + 28, l.ry + 28, 0, 0, Math.PI * 2); gctx1.fill();
-    gctx1.fillStyle = "#16a085";
-    gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx + 8, l.ry + 8, 0, 0, Math.PI * 2); gctx1.fill();
-    gctx1.fillStyle = "#1a5276";
-    gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx - 14, l.ry - 14, 0, 0, Math.PI * 2); gctx1.fill();
-    gctx1.fillStyle = "#0e2f44";
-    gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx - 45, l.ry - 45, 0, 0, Math.PI * 2); gctx1.fill();
+    gctx1.fillStyle = "#a88956"; gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx + 28, l.ry + 28, 0, 0, Math.PI * 2); gctx1.fill();
+    gctx1.fillStyle = "#16a085"; gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx + 8, l.ry + 8, 0, 0, Math.PI * 2); gctx1.fill();
+    gctx1.fillStyle = "#1a5276"; gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx - 14, l.ry - 14, 0, 0, Math.PI * 2); gctx1.fill();
+    gctx1.fillStyle = "#0e2f44"; gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx - 45, l.ry - 45, 0, 0, Math.PI * 2); gctx1.fill();
   });
-
-  gctx1.strokeStyle = "#c0392b";
-  gctx1.lineWidth = 8;
-  gctx1.strokeRect(0, 0, 4400, 3200);
-}
-bakeGround1();
+  gctx1.strokeStyle = "#c0392b"; gctx1.lineWidth = 8; gctx1.strokeRect(0, 0, 4400, 3200);
+} bakeGround1();
 
 function bakeGround2() {
-  gctx2.fillStyle = "#160704";
-  gctx2.fillRect(0, 0, 5200, 3800);
-
+  gctx2.fillStyle = "#160704"; gctx2.fillRect(0, 0, 5200, 3800);
   for (let i = 0; i < 1400; i++) {
-    const gx = Math.random() * (5200 - 60) + 30;
-    const gy = Math.random() * (3800 - 60) + 30;
-    const type = Math.floor(Math.random() * 3);
-    const size = Math.random() * 3.5 + 2;
-    gctx2.fillStyle = type === 0 ? "#c0392b" : (type === 1 ? "#d35400" : "#f39c12");
-    gctx2.beginPath();
-    gctx2.arc(gx, gy, size, 0, Math.PI * 2);
-    gctx2.fill();
+    const gx = Math.random() * (5200 - 60) + 30; const gy = Math.random() * (3800 - 60) + 30; const type = Math.floor(Math.random() * 3); const size = Math.random() * 3.5 + 2;
+    gctx2.fillStyle = type === 0 ? "#c0392b" : (type === 1 ? "#d35400" : "#f39c12"); gctx2.beginPath(); gctx2.arc(gx, gy, size, 0, Math.PI * 2); gctx2.fill();
   }
-
   lavaLakes.forEach(l => {
-    gctx2.fillStyle = "#0a0402";
-    gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx + 30, l.ry + 30, 0, 0, Math.PI * 2); gctx2.fill();
-    gctx2.fillStyle = "#962d00";
-    gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx + 10, l.ry + 10, 0, 0, Math.PI * 2); gctx2.fill();
-    gctx2.fillStyle = "#d35400";
-    gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx - 15, l.ry - 15, 0, 0, Math.PI * 2); gctx2.fill();
-    gctx2.fillStyle = "#f39c12";
-    gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx - 50, l.ry - 50, 0, 0, Math.PI * 2); gctx2.fill();
+    gctx2.fillStyle = "#0a0402"; gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx + 30, l.ry + 30, 0, 0, Math.PI * 2); gctx2.fill();
+    gctx2.fillStyle = "#962d00"; gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx + 10, l.ry + 10, 0, 0, Math.PI * 2); gctx2.fill();
+    gctx2.fillStyle = "#d35400"; gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx - 15, l.ry - 15, 0, 0, Math.PI * 2); gctx2.fill();
+    gctx2.fillStyle = "#f39c12"; gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx - 50, l.ry - 50, 0, 0, Math.PI * 2); gctx2.fill();
   });
+  gctx2.strokeStyle = "#e74c3c"; gctx2.lineWidth = 10; gctx2.strokeRect(0, 0, 5200, 3800);
+} bakeGround2();
 
-  gctx2.strokeStyle = "#e74c3c";
-  gctx2.lineWidth = 10;
-  gctx2.strokeRect(0, 0, 5200, 3800);
-}
-bakeGround2();
-
-// ==========================================
-// SES MOTORU (CPU Yormayan Versiyon)
-// ==========================================
 let audioCtx = null;
 let nightMusicTimer = null;
 let isNightMusicPlaying = false;
@@ -274,7 +212,7 @@ const TOOLS = [
 
 const player = {
   name: "Savaşçı", gender: "male",
-  x: 2200, y: 1600, size: 22, speed: 5.2,
+  x: 2200, y: 1600, size: 22, speed: 5.5,
   health: 100, maxHealth: 100,
   wood: 0, stone: 0, copper: 0, silver: 0, iron: 0, gold: 0,
   hasIronSword: false, hasIronPick: false, hasGoldHelm: false, hasGoldChest: false, hasGoldPants: false, hasGoldBoots: false, isBlessed: false,
@@ -288,7 +226,6 @@ let base = null; let escapePortal = null; let hellGate = null; let imanStone = n
 const CYCLE_DURATION = 3600; let cycleTicks = 0; let dayCount = 1; let isNight = false;
 let joystickVector = { x: 0, y: 0 }; const camera = { x: 0, y: 0 };
 
-// Hikaye / Diyalog
 function showDialogue(speaker, text, avatar = "🧙‍♂️") {
   dialogueSpeaker.innerText = speaker; dialogueText.innerText = text; document.getElementById("dialogue-avatar").innerText = avatar;
   storyDialogue.classList.remove("hidden");
@@ -330,12 +267,8 @@ function spawnOre(type) {
     const x = Math.random() * (WORLD_WIDTH - 300) + 150; const y = Math.random() * (WORLD_HEIGHT - 300) + 150;
     if (isCollidingWithLava(x, y, 45)) continue;
     ores.push({
-      type: type, x: x, y: y, size: 24, hp: 100, maxHp: 100, shake: 0,
-      crystalOffset: Math.random() * Math.PI * 2,
-      points: [
-        { x: -16, y: 8 }, { x: -12, y: -16 }, { x: 4, y: -22 },
-        { x: 18, y: -10 }, { x: 22, y: 10 }, { x: -4, y: 20 }
-      ]
+      type: type, x: x, y: y, size: 24, hp: 100, maxHp: 100, shake: 0, crystalOffset: Math.random() * Math.PI * 2,
+      points: [ { x: -16, y: 8 }, { x: -12, y: -16 }, { x: 4, y: -22 }, { x: 18, y: -10 }, { x: 22, y: 10 }, { x: -4, y: 20 } ]
     });
     break;
   }
@@ -345,7 +278,6 @@ function isCollidingWithLakes(x, y, padding = 15) { for (let l of lakes) { const
 function isCollidingWithLava(x, y, padding = 15) { for (let l of lavaLakes) { const dx = (x - l.x) / (l.rx + padding); const dy = (y - l.y) / (l.ry + padding); if (dx * dx + dy * dy <= 1) return true; } return false; }
 function isCollidingWithRuins(x, y, padding = 15) { for (let r of ruins) { if (x >= r.x - padding && x <= r.x + r.w + padding && y >= r.y - padding && y <= r.y + r.h + padding) return true; } return false; }
 
-// Üretim Menüsü
 function toggleCraftingModal() {
   if (currentMap !== 2) { alert("Üretim atölyesi 2. Bölüm (Cehennem) madenlerinde kullanılabilir!"); return; }
   craftingModal.classList.toggle("hidden"); updateCraftingButtons();
@@ -369,7 +301,6 @@ document.getElementById("craft-boots-btn").addEventListener("click", () => { if 
 document.getElementById("craft-sword-btn").addEventListener("click", () => { if (player.iron >= 20 && !player.hasIronSword) { player.iron -= 20; player.hasIronSword = true; TOOLS[0].monsterDmg = 90; TOOLS[0].name = "🗡️ Üst Düzey Demir Kılıç"; SFX.build(); updateUI(); updateCraftingButtons(); } });
 document.getElementById("craft-pick-btn").addEventListener("click", () => { if (player.iron >= 20 && !player.hasIronPick) { player.iron -= 20; player.hasIronPick = true; TOOLS[2].oreDmg = 85; TOOLS[2].name = "⛏️ Üst Düzey Demir Kazma"; SFX.build(); updateUI(); updateCraftingButtons(); } });
 
-// Giriş Cihaz & Harita Seçimi
 let welcomeTriggered = false;
 function triggerWelcome() {
   if (welcomeTriggered) return;
@@ -397,7 +328,6 @@ function cycleTool() {
 }
 toolCycleBtn.addEventListener("click", cycleTool); toolCycleBtn.addEventListener("touchstart", (e) => { e.preventDefault(); cycleTool(); });
 
-// Adım 1'den Adım 2'ye geçiş
 function bindDeviceButton(btnId, dev) {
   const btn = document.getElementById(btnId);
   btn.addEventListener("pointerdown", (e) => {
@@ -479,7 +409,6 @@ function setupMobileControls() {
   document.getElementById("btn-build").addEventListener("touchstart", (e) => { e.preventDefault(); initAudio(); buildOrRepairBase(); });
 }
 
-// SALDIRI VE OYUN MANTIĞI
 function attackOrGather() {
   if (player.isAttacking) return;
   player.isAttacking = true; player.attackTimer = 12;
@@ -671,7 +600,7 @@ function resetGame(forceFirstDay = false) {
     if (dayCount >= 5 && !forceFirstDay) { dayCount = 5; } else { dayCount = 1; }
     player.maxHealth = 100; player.health = 100; dayEl.innerText = `${dayCount}/10 Gün`;
   }
-  player.x = WORLD_WIDTH / 2; player.y = WORLD_HEIGHT / 2; player.isPoisoned = false; base = null; escapePortal = null; hellGate = null; imanStone = null; hellBoss = null; monsters = []; meats = []; cycleTicks = 0; isNight = false;
+  player.x = WORLD_WIDTH / 2; player.y = WORLD_HEIGHT / 2; player.isPoisoned = false; base = null; escapePortal = null; hellGate = null; imanStone = null; hellBoss = null; monsters = []; meats = []; cycleTicks = 0; isNight = false; trails = [];
   if (currentMap === 1) { trees = []; rocks = []; for (let i = 0; i < 110; i++) spawnTree(); for (let i = 0; i < 65; i++) spawnRock(); }
   triggerAchievementByDay(dayCount); updateUI();
 }
@@ -689,7 +618,20 @@ function updatePlayer() {
   let moveX = 0; let moveY = 0;
   if (keys["w"] || keys["arrowup"]) moveY -= 1; if (keys["s"] || keys["arrowdown"]) moveY += 1; if (keys["a"] || keys["arrowleft"]) { moveX -= 1; player.facing = -1; } if (keys["d"] || keys["arrowright"]) { moveX += 1; player.facing = 1; }
   if (currentDevice !== "pc") { moveX += joystickVector.x; moveY += joystickVector.y; }
-  if (moveX !== 0 || moveY !== 0) player.walkCycle += 0.25;
+  
+  // HAREKET EDİYORSA TOZ/ATEŞ İZİ ÇIKART (Parçacık Sistemi)
+  if (moveX !== 0 || moveY !== 0) {
+    player.walkCycle += 0.25;
+    if (Math.random() < 0.4) {
+      trails.push({
+        x: player.x + (Math.random() - 0.5) * 10,
+        y: player.y + 10 + (Math.random() - 0.5) * 5,
+        size: Math.random() * 3 + 2,
+        life: 1.0,
+        type: currentMap === 1 ? 'dust' : 'ember'
+      });
+    }
+  }
 
   const targetX = player.x + moveX * player.speed; const targetY = player.y + moveY * player.speed;
 
@@ -714,7 +656,9 @@ function checkMeatPickup() {
   }
 }
 
-// Hatıra Defteri
+// ==========================================
+// HATIRA DEFTERİ
+// ==========================================
 function openGuestbook() {
   guestbookModal.classList.remove("hidden");
   if (currentMap === 1) {
@@ -736,7 +680,7 @@ btnPlayAgain.addEventListener("click", () => { window.location.reload(); });
 function escapeHtml(text) { const div = document.createElement("div"); div.innerText = text; return div.innerHTML; }
 
 // ==========================================
-// ÇİZİMLER (OPTİMİZE EDİLMİŞ VERSİYONLAR)
+// ÇİZİMLER (OPTİMİZE EDİLMİŞ)
 // ==========================================
 function drawTree(t) {
   let shakeOffset = 0; if (t.shake > 0) { shakeOffset = (Math.random() - 0.5) * t.shake; t.shake--; }
@@ -765,43 +709,23 @@ function drawRock(r) {
   ctx.restore();
 }
 
-// 2. Harita Özelleştirilmiş Yeni 3D Maden Çizimi (Gölge bulanıklığı yok, çok hafif, şık)
 function drawOre(o) {
   let shakeOffset = (Math.random() - 0.5) * o.shake; if (o.shake > 0) o.shake--;
   const px = o.x + shakeOffset; const py = o.y;
-
   if (o.hp < o.maxHp) { ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(px - 18, py - 35, 36, 5); ctx.fillStyle = "#f39c12"; ctx.fillRect(px - 18, py - 35, (36 * o.hp) / o.maxHp, 5); }
-
-  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-  ctx.beginPath(); ctx.ellipse(px, py + 14, 24, 8, 0, 0, Math.PI * 2); ctx.fill();
-
+  ctx.fillStyle = "rgba(0, 0, 0, 0.4)"; ctx.beginPath(); ctx.ellipse(px, py + 14, 24, 8, 0, 0, Math.PI * 2); ctx.fill();
   ctx.save(); ctx.translate(px, py);
-
-  ctx.fillStyle = "#2c2c2c";
-  ctx.beginPath(); ctx.moveTo(o.points[0].x, o.points[0].y);
-  for (let i = 1; i < o.points.length; i++) { ctx.lineTo(o.points[i].x, o.points[i].y); } ctx.closePath(); ctx.fill();
-
-  ctx.fillStyle = "#4a4a4a";
-  ctx.beginPath(); ctx.moveTo(o.points[1].x, o.points[1].y); ctx.lineTo(o.points[2].x, o.points[2].y); ctx.lineTo(0, 0); ctx.fill();
-
+  ctx.fillStyle = "#2c2c2c"; ctx.beginPath(); ctx.moveTo(o.points[0].x, o.points[0].y); for (let i = 1; i < o.points.length; i++) { ctx.lineTo(o.points[i].x, o.points[i].y); } ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#4a4a4a"; ctx.beginPath(); ctx.moveTo(o.points[1].x, o.points[1].y); ctx.lineTo(o.points[2].x, o.points[2].y); ctx.lineTo(0, 0); ctx.fill();
   let primaryColor, glowColor;
   if (o.type === "copper") { primaryColor = "#c0392b"; glowColor = "#e67e22"; }
   else if (o.type === "silver") { primaryColor = "#95a5a6"; glowColor = "#ecf0f1"; }
   else if (o.type === "iron") { primaryColor = "#5d6d7e"; glowColor = "#85c1e9"; }
   else if (o.type === "gold") { primaryColor = "#f39c12"; glowColor = "#f1c40f"; }
-
   const pulse = Math.sin(Date.now() * 0.005 + o.crystalOffset) * 2;
-
-  ctx.fillStyle = primaryColor;
-  ctx.beginPath(); ctx.moveTo(-10, -5); ctx.lineTo(-2, -15); ctx.lineTo(8, -8); ctx.lineTo(0, 2); ctx.closePath(); ctx.fill();
-
-  ctx.fillStyle = glowColor;
-  ctx.beginPath(); ctx.moveTo(2, -12); ctx.lineTo(12, -4); ctx.lineTo(6, 6); ctx.lineTo(-2, 0); ctx.closePath(); ctx.fill();
-
-  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-  ctx.beginPath(); ctx.arc(-2, -8, 2 + pulse*0.5, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(6, -2, 1.5 + pulse*0.5, 0, Math.PI*2); ctx.fill();
-
+  ctx.fillStyle = primaryColor; ctx.beginPath(); ctx.moveTo(-10, -5); ctx.lineTo(-2, -15); ctx.lineTo(8, -8); ctx.lineTo(0, 2); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = glowColor; ctx.beginPath(); ctx.moveTo(2, -12); ctx.lineTo(14, -6); ctx.lineTo(10, 6); ctx.lineTo(-2, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "rgba(255, 255, 255, 0.4)"; ctx.beginPath(); ctx.arc(-2, -8, 2 + pulse*0.5, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(6, -2, 1.5 + pulse*0.5, 0, Math.PI*2); ctx.fill();
   ctx.restore();
 }
 
@@ -888,7 +812,7 @@ function drawBaseStructure(b) {
   const bx = b.x; const by = b.y; const bs = b.size; const barY = by - 56;
   ctx.fillStyle = "rgba(0, 0, 0, 0.85)"; ctx.fillRect(bx - 10, barY, bs + 20, 12); ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5; ctx.strokeRect(bx - 10, barY, bs + 20, 12);
   const hpRatio = Math.max(0, b.hp / b.maxHp); ctx.fillStyle = hpRatio > 0.4 ? "#2ecc71" : "#e74c3c"; ctx.fillRect(bx - 9, barY + 1, (bs + 18) * hpRatio, 10);
-  ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center"; ctx.shadowColor = "rgba(0,0,0,0.9)"; ctx.shadowBlur = 4; ctx.fillText(`🏠 Sığınak Canı: ${Math.floor(b.hp)} / ${b.maxHp}`, bx + bs / 2, barY - 6); ctx.shadowBlur = 0;
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center"; ctx.fillText(`🏠 Sığınak Canı: ${Math.floor(b.hp)} / ${b.maxHp}`, bx + bs / 2, barY - 6);
   ctx.fillStyle = "rgba(0,0,0,0.38)"; ctx.fillRect(bx - 12, by + bs - 6, bs + 24, 22); ctx.fillStyle = "#47525e"; ctx.fillRect(bx - 6, by + bs - 16, bs + 12, 16); ctx.fillStyle = "#543013"; ctx.fillRect(bx, by, bs, bs - 12);
   ctx.strokeStyle = "#361c07"; ctx.lineWidth = 3; for (let y = by + 20; y < by + bs - 14; y += 20) { ctx.beginPath(); ctx.moveTo(bx, y); ctx.lineTo(bx + bs, y); ctx.stroke(); }
   ctx.fillStyle = "#873600"; ctx.beginPath(); ctx.moveTo(bx - 18, by + 6); ctx.lineTo(bx + bs / 2, by - 44); ctx.lineTo(bx + bs + 18, by + 6); ctx.fill();
@@ -914,6 +838,41 @@ function renderMinimap() {
   mctx.fillStyle = "#2ecc71"; mctx.beginPath(); mctx.arc(player.x * scaleX, player.y * scaleY, 3.5, 0, Math.PI * 2); mctx.fill();
 }
 
+// YENİ EKLENEN ÇİZİM FONKSİYONLARI (Hava Durumu ve İzler)
+function drawTrails() {
+  for (let i = trails.length - 1; i >= 0; i--) {
+    let tr = trails[i];
+    tr.life -= 0.035;
+    tr.size += 0.15;
+    if (tr.life <= 0) { trails.splice(i, 1); continue; }
+    ctx.fillStyle = tr.type === 'dust' ? `rgba(180, 180, 180, ${tr.life * 0.4})` : `rgba(230, 80, 20, ${tr.life * 0.6})`;
+    ctx.beginPath(); ctx.arc(tr.x, tr.y, tr.size, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+function drawWeather() {
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); // Ekrana sabitler (Kameradan bağımsız)
+  weatherParticles.forEach(p => {
+    if (currentMap === 1) { // Orman: Yağmur
+      p.x += p.vx - 1;
+      p.y += p.vy * 1.5;
+      if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
+      if (p.x < 0) p.x = canvas.width;
+      ctx.fillStyle = `rgba(150, 200, 255, ${p.opacity * 0.7})`;
+      ctx.fillRect(p.x, p.y, 1.5, p.size * 4);
+    } else { // Cehennem: Kül ve Köz
+      p.x += Math.sin(Date.now() * 0.001 + p.y) * 0.5;
+      p.y -= p.vy * 0.4;
+      if (p.y < -10) { p.y = canvas.height + 10; p.x = Math.random() * canvas.width; }
+      if (p.x < 0) p.x = canvas.width; else if (p.x > canvas.width) p.x = 0;
+      ctx.fillStyle = Math.random() > 0.85 ? `rgba(230, 126, 34, ${p.opacity})` : `rgba(100, 100, 100, ${p.opacity})`;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+    }
+  });
+  ctx.restore();
+}
+
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save(); ctx.translate(-camera.x, -camera.y);
@@ -932,12 +891,18 @@ function render() {
   if (base && base.hp > 0) drawBaseStructure(base);
   meats.forEach(m => drawMeat(m.x, m.y));
 
+  drawTrails(); // Karakterin hemen altına ayak izleri çizilir
   if (!isDead && !gameWon) drawPlayer(player.x, player.y);
   monsters.forEach(m => drawMonster(m));
 
-  if (isNight) { ctx.fillStyle = currentMap === 1 ? "rgba(5, 10, 18, 0.72)" : "rgba(35, 5, 2, 0.78)"; ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT); }
-
-  ctx.restore(); renderMinimap();
+  if (isNight) {
+    ctx.fillStyle = currentMap === 1 ? "rgba(5, 10, 18, 0.72)" : "rgba(35, 5, 2, 0.78)";
+    ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+  }
+  ctx.restore();
+  
+  drawWeather(); // Kamera ve gece filtresinin üstüne hava durumu çizilir
+  renderMinimap();
 
   if (isDead) {
     ctx.fillStyle = "rgba(5, 5, 5, 0.94)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
