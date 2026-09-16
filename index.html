@@ -31,9 +31,8 @@
   <!-- Giriş Menüsü -->
   <div id="device-modal">
     <div class="modal-box">
-      <div class="version-header">v2.5.0 • Cehennem Haritası Eklendi</div>
+      <div class="version-header">v3.0.0 • Harita ve Kod Sistemi</div>
       <h2>Kızını Kurtar!</h2>
-      <div class="version-tag">🎯 1. Harita ➔ Cehennem ➔ İman Taşı ➔ Kurtuluş!</div>
 
       <div class="input-group">
         <label for="player-name-input">Kahramanın Adı:</label>
@@ -48,14 +47,27 @@
         </div>
       </div>
 
-      <p>Cihazını Seç ve Başla:</p>
-      <div class="modal-buttons">
-        <button type="button" id="btn-pc" class="choice-btn pc-btn">💻 Bilgisayar (Klavye & Fare)</button>
-        <button type="button" id="btn-android" class="choice-btn android-btn">🤖 Android</button>
-        <button type="button" id="btn-ios" class="choice-btn ios-btn">🍏 iPhone (Safari)</button>
+      <!-- 1. Aşama: Cihaz Seçimi -->
+      <div id="step-1-device">
+        <p>1. Adım: Cihazını Seç</p>
+        <div class="modal-buttons">
+          <button type="button" id="btn-pc" class="choice-btn pc-btn">💻 Bilgisayar (Klavye & Fare)</button>
+          <button type="button" id="btn-android" class="choice-btn android-btn">🤖 Android</button>
+          <button type="button" id="btn-ios" class="choice-btn ios-btn">🍏 iPhone (Safari)</button>
+        </div>
       </div>
 
-      <div class="modal-footer-version">Yapım Sürümü: v2.5.0 • 2 Bölüm Tam Paket</div>
+      <!-- 2. Aşama: Harita Seçimi (İlk başta gizli) -->
+      <div id="step-2-map" class="hidden">
+        <p>2. Adım: Haritanı Seç</p>
+        <div class="modal-buttons">
+          <button type="button" id="btn-map-1" class="choice-btn map-btn map-1-btn">🌲 1. Harita (Orman)</button>
+          <button type="button" id="btn-map-2" class="choice-btn map-btn map-2-btn">🔥 2. Harita (Cehennem)</button>
+        </div>
+        <button type="button" id="btn-back-device" class="back-btn">⬅ Geri Dön</button>
+      </div>
+
+      <div class="modal-footer-version">Yapım Sürümü: v3.0.0 • 2 Bölüm Tam Paket</div>
     </div>
   </div>
 
@@ -87,7 +99,7 @@
       <button type="button" id="dialogue-close-btn" class="dialogue-close">Tamam ➔</button>
     </div>
 
-    <!-- Üretim / Crafting Modal Paneli (Map 2 İçin) -->
+    <!-- Üretim / Crafting Modal Paneli -->
     <div id="crafting-modal" class="hidden">
       <div class="craft-box">
         <div class="craft-header">
@@ -148,35 +160,25 @@
       <div class="stat-box">🗺️ <span id="map-name-val">1. Harita</span></div>
       <div class="stat-box">📅 <span id="day-val">1. Gün</span></div>
       <div class="stat-box">⏳ <span id="time-val">Gündüz</span></div>
-      <!-- 1. Harita Kaynakları -->
       <div class="stat-box" id="wood-stat">🌲 <span id="wood-val">0</span></div>
       <div class="stat-box" id="stone-stat">🪨 <span id="stone-val">0</span></div>
-      <!-- 2. Harita Madenleri -->
       <div class="stat-box hidden" id="copper-stat">🥉 <span id="copper-val">0</span></div>
       <div class="stat-box hidden" id="silver-stat">🥈 <span id="silver-val">0</span></div>
       <div class="stat-box hidden" id="iron-stat">⛓️ <span id="iron-val">0</span></div>
       <div class="stat-box hidden" id="gold-stat">🪙 <span id="gold-val">0</span></div>
     </div>
 
-    <!-- Mini Harita -->
     <canvas id="minimapCanvas" width="110" height="82"></canvas>
-
-    <!-- Ana Oyun Tuvali -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- Bilgisayar Kontrol İpucu -->
     <div id="pc-controls" class="hint-text">
       <b>W,A,S,D:</b> Git | <b>Boşluk/Tık:</b> Vur | <b>Q / 1,2,3:</b> Alet | <b>B:</b> Sığınak | <b>C:</b> Üretim Atölyesi
     </div>
 
-    <!-- Mobil Dokunmatik Katman -->
     <div id="mobile-overlay" class="hidden">
       <div id="joystick-zone">
-        <div id="joystick-base">
-          <div id="joystick-knob"></div>
-        </div>
+        <div id="joystick-base"><div id="joystick-knob"></div></div>
       </div>
-
       <div id="action-zone">
         <button type="button" id="btn-craft-touch" class="touch-action-btn craft-btn">🔨</button>
         <button type="button" id="btn-build" class="touch-action-btn build-btn">🏠</button>
@@ -184,34 +186,30 @@
       </div>
     </div>
 
-    <!-- Final Zafer & Geliştirici Yorum / Hatıra Defteri Modalı -->
+    <!-- Final Zafer & Geliştirici Yorum Defteri Modalı -->
     <div id="guestbook-modal" class="hidden">
       <div class="guestbook-box">
-        <div class="trophy-header">🏆 KIZINLA BİRLİKTE EBEDİYEN KURTULDUNUZ! 🏆</div>
-        <p class="final-story-text">
-          1. Bölümdeki ormanı aştın, 2. Bölümdeki Cehennem Lordu'nu ve yılan istilasını İman Taşı'nın kutsal gücüyle yerle bir ettin. 
-          Kızını kucağına aldın ve bu lanetli diyardan sonsuza dek kaçtınız!
+        <div class="trophy-header" id="victory-header-text">🏆 KIZINLA BİRLİKTE EBEDİYEN KURTULDUNUZ! 🏆</div>
+        <p class="final-story-text" id="victory-desc-text">
+          Tüm iblisleri devirdiniz!
         </p>
-
+        <div class="promo-code-box hidden" id="promo-code-box">
+          Bölüm 2'yi (Cehennem) açmak için Promosyon Kodun: <br><b>hşgldn100</b>
+        </div>
         <div class="guestbook-form">
           <h4>✍️ Geliştirici Hatıra & Yorum Defteri</h4>
-          <p>Oyun geliştiricisi olarak fikirlerin ve tavsiyelerin çok değerli! Adını ve mesajını hatıra olarak buraya bırak:</p>
+          <p>Adını ve mesajını hatıra olarak buraya bırak:</p>
           <input type="text" id="comment-author" placeholder="Adınız / Takma Adınız..." maxlength="20">
-          <textarea id="comment-message" placeholder="Oyun nasıldı? Tavsiyeleriniz, anılarınız veya yorumunuz..." rows="3"></textarea>
-          <button type="button" id="btn-submit-comment" class="comment-submit-btn">Yorumu Hatıra Defterine Kaydet</button>
+          <textarea id="comment-message" placeholder="Tavsiyeleriniz veya yorumunuz..." rows="3"></textarea>
+          <button type="button" id="btn-submit-comment" class="comment-submit-btn">Hatıra Defterine Kaydet</button>
         </div>
-
         <div class="comments-list-section">
-          <h5>📜 Kayıtlı Oyuncu Yorumları & Hatıralar:</h5>
-          <div id="comments-container" class="comments-container">
-            <!-- Yorumlar dinamik eklenir -->
-          </div>
+          <h5>📜 Kayıtlı Oyuncu Yorumları:</h5>
+          <div id="comments-container" class="comments-container"></div>
         </div>
-
-        <button type="button" id="btn-play-again" class="play-again-btn">🔄 Oyunu Baştan Oyna</button>
+        <button type="button" id="btn-play-again" class="play-again-btn">🔄 Ana Menüye Dön</button>
       </div>
     </div>
-
   </div>
 
   <script src="game.js"></script>
