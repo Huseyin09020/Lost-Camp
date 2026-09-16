@@ -8,32 +8,37 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
+// Mini Harita
 const minimapCanvas = document.getElementById("minimapCanvas");
 const mctx = minimapCanvas.getContext("2d");
 
-let currentMap = 1; 
+// ==========================================
+// HARİTA ÖLÇÜLERİ
+// ==========================================
+let currentMap = 1; // 1: Orman / Doğa, 2: Cehennem
 let WORLD_WIDTH = 4400;
 let WORLD_HEIGHT = 3200;
 
-// UI
+// UI Elementleri
 const healthEl = document.getElementById("health-val");
 const maxHealthEl = document.getElementById("max-health-val");
 const mapNameEl = document.getElementById("map-name-val");
 const dayEl = document.getElementById("day-val");
 const timeEl = document.getElementById("time-val");
-const woodEl = document.getElementById("wood-val");
-const stoneEl = document.getElementById("stone-val");
-const copperEl = document.getElementById("copper-val");
-const silverEl = document.getElementById("silver-val");
-const ironEl = document.getElementById("iron-val");
-const goldEl = document.getElementById("gold-val");
 
 const woodStat = document.getElementById("wood-stat");
 const stoneStat = document.getElementById("stone-stat");
+const woodEl = document.getElementById("wood-val");
+const stoneEl = document.getElementById("stone-val");
+
 const copperStat = document.getElementById("copper-stat");
 const silverStat = document.getElementById("silver-stat");
 const ironStat = document.getElementById("iron-stat");
 const goldStat = document.getElementById("gold-stat");
+const copperEl = document.getElementById("copper-val");
+const silverEl = document.getElementById("silver-val");
+const ironEl = document.getElementById("iron-val");
+const goldEl = document.getElementById("gold-val");
 
 const deviceModal = document.getElementById("device-modal");
 const gameContainer = document.getElementById("game-container");
@@ -46,17 +51,18 @@ const achBanner = document.getElementById("achievement-banner");
 const achDesc = document.getElementById("ach-desc");
 const welcomeToast = document.getElementById("welcome-toast");
 
-// Diyalog & Crafting
+// Diyalog ve Üretim Elementleri
 const storyDialogue = document.getElementById("story-dialogue");
 const dialogueSpeaker = document.getElementById("dialogue-speaker");
 const dialogueText = document.getElementById("dialogue-text");
 const dialogueCloseBtn = document.getElementById("dialogue-close-btn");
+
 const craftingModal = document.getElementById("crafting-modal");
 const btnCraftMenu = document.getElementById("btn-craft-menu");
 const btnCraftTouch = document.getElementById("btn-craft-touch");
 const craftCloseBtn = document.getElementById("craft-close-btn");
 
-// Hatıra
+// Hatıra Defteri
 const guestbookModal = document.getElementById("guestbook-modal");
 const commentAuthor = document.getElementById("comment-author");
 const commentMessage = document.getElementById("comment-message");
@@ -64,62 +70,134 @@ const btnSubmitComment = document.getElementById("btn-submit-comment");
 const commentsContainer = document.getElementById("comments-container");
 const btnPlayAgain = document.getElementById("btn-play-again");
 
+// ==========================================
+// BAŞARIM LİSTELERİ
+// ==========================================
 const MAP1_ACHIEVEMENTS = [
-  "1. Gün: Hayat Adamı", "2. Gün: Zorluklara Göğüs Germek", "3. Gün: Vahşi Kurtların Efendisi",
-  "4. Gün: Ayıların Hükümdarlığı Başladı!", "5. Gün: Yarı Yolu Devirdik!", "6. Gün: Ayı Avcısı",
-  "7. Gün: Karanlık İblisler Uyandı!", "8. Gün: Cehennem Şafağı", "9. Gün: Sonun Başlangıcı",
-  "10. Gün: KIZINI KURTARDIN! Geçit Açıldı!"
+  "1. Gün: Hayat Adamı (Kurtlar Yakında!)",
+  "2. Gün: Zorluklara Göğüs Germek",
+  "3. Gün: Vahşi Kurtların Efendisi",
+  "4. Gün: Ayıların Hükümdarlığı Başladı!",
+  "5. Gün: Yarı Yolu Devirdik! (KONTROL NOKTASI)",
+  "6. Gün: Ayı Avcısı",
+  "7. Gün: Karanlık İblisler Uyandı!",
+  "8. Gün: Cehennem Şafağı",
+  "9. Gün: Sonun Başlangıcı",
+  "10. Gün: KIZINI KURTARDIN! Cehennem Kapısı Açıldı!"
 ];
 
 const MAP2_ACHIEVEMENTS_MAP = {
-  1: "1. Gün: Cehenneme Ayak Bastın!",
-  3: "3. Gün: Maden Toplayıcısı",
+  1: "1. Gün: Cehenneme Ayak Bastın! (Gün Sıfırlandı)",
+  3: "3. Gün: Maden Toplayıcısı (Bakır & Gümüş)",
   6: "6. Gün: DİKKAT! Zehirli Yılan İstilası!",
   8: "8. Gün: Yılanların Zehrine Direniş!",
-  12: "12. Gün: Ağır Madenler",
+  12: "12. Gün: Ağır Madenler (Demir & Altın)",
   15: "15. Gün: Cehennem Zırhları Kuşanıldı!",
   20: "20. Gün: KUTSAL İMAN TAŞI GÖKTEN DÜŞTÜ!",
   25: "25. Gün: Kıyamet Yaklaşıyor...",
-  30: "30. Gün: BÜYÜK BOSS SAVAŞI & KURTULUŞ!"
+  30: "30. Gün: BÜYÜK BOSS SAVAŞI & EBEDİ KURTULUŞ!"
 };
 
-const lakes = [{ x: 1050, y: 950, rx: 240, ry: 170 }, { x: 3250, y: 2250, rx: 280, ry: 200 }, { x: 1350, y: 2350, rx: 200, ry: 150 }];
-const ruins = [{ type: "tower", x: 900, y: 1800, w: 90, h: 90 }, { type: "castle", x: 3100, y: 900, w: 140, h: 120 }, { type: "altar", x: 2200, y: 2400, w: 110, h: 110 }];
-const lavaLakes = [{ x: 1200, y: 1100, rx: 320, ry: 220 }, { x: 3800, y: 2400, rx: 360, ry: 240 }, { x: 2600, y: 1600, rx: 250, ry: 180 }, { x: 1500, y: 2800, rx: 280, ry: 200 }];
+// ==========================================
+// GÖLLER VE KALINTILAR
+// ==========================================
+const lakes = [
+  { x: 1050, y: 950, rx: 240, ry: 170 },
+  { x: 3250, y: 2250, rx: 280, ry: 200 },
+  { x: 1350, y: 2350, rx: 200, ry: 150 }
+];
 
-const groundCanvas1 = document.createElement("canvas"); groundCanvas1.width = 4400; groundCanvas1.height = 3200; const gctx1 = groundCanvas1.getContext("2d");
-const groundCanvas2 = document.createElement("canvas"); groundCanvas2.width = 5200; groundCanvas2.height = 3800; const gctx2 = groundCanvas2.getContext("2d");
+const ruins = [
+  { type: "tower", x: 900, y: 1800, w: 90, h: 90 },
+  { type: "castle", x: 3100, y: 900, w: 140, h: 120 },
+  { type: "altar", x: 2200, y: 2400, w: 110, h: 110 }
+];
+
+const lavaLakes = [
+  { x: 1200, y: 1100, rx: 320, ry: 220 },
+  { x: 3800, y: 2400, rx: 360, ry: 240 },
+  { x: 2600, y: 1600, rx: 250, ry: 180 },
+  { x: 1500, y: 2800, rx: 280, ry: 200 }
+];
+
+// Zemin Önbellekleri (Performans / Optimizasyon)
+const groundCanvas1 = document.createElement("canvas");
+groundCanvas1.width = 4400;
+groundCanvas1.height = 3200;
+const gctx1 = groundCanvas1.getContext("2d");
+
+const groundCanvas2 = document.createElement("canvas");
+groundCanvas2.width = 5200;
+groundCanvas2.height = 3800;
+const gctx2 = groundCanvas2.getContext("2d");
 
 function bakeGround1() {
-  gctx1.fillStyle = "#264817"; gctx1.fillRect(0, 0, 4400, 3200);
+  gctx1.fillStyle = "#264817";
+  gctx1.fillRect(0, 0, 4400, 3200);
+
   for (let i = 0; i < 900; i++) {
-    const gx = Math.random() * (4400 - 60) + 30; const gy = Math.random() * (3200 - 60) + 30; const type = Math.floor(Math.random() * 3); const size = Math.random() * 4 + 4;
-    gctx1.fillStyle = type === 0 ? "#1b3510" : (type === 1 ? "#335721" : "#f1c40f"); gctx1.beginPath(); gctx1.arc(gx, gy, size, 0, Math.PI * 2); gctx1.fill();
+    const gx = Math.random() * (4400 - 60) + 30;
+    const gy = Math.random() * (3200 - 60) + 30;
+    const type = Math.floor(Math.random() * 3);
+    const size = Math.random() * 4 + 4;
+    gctx1.fillStyle = type === 0 ? "#1b3510" : (type === 1 ? "#335721" : "#f1c40f");
+    gctx1.beginPath();
+    gctx1.arc(gx, gy, size, 0, Math.PI * 2);
+    gctx1.fill();
   }
+
   lakes.forEach(l => {
-    gctx1.fillStyle = "#a88956"; gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx + 28, l.ry + 28, 0, 0, Math.PI * 2); gctx1.fill();
-    gctx1.fillStyle = "#16a085"; gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx + 8, l.ry + 8, 0, 0, Math.PI * 2); gctx1.fill();
-    gctx1.fillStyle = "#1a5276"; gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx - 14, l.ry - 14, 0, 0, Math.PI * 2); gctx1.fill();
-    gctx1.fillStyle = "#0e2f44"; gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx - 45, l.ry - 45, 0, 0, Math.PI * 2); gctx1.fill();
+    gctx1.fillStyle = "#a88956";
+    gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx + 28, l.ry + 28, 0, 0, Math.PI * 2); gctx1.fill();
+    gctx1.fillStyle = "#16a085";
+    gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx + 8, l.ry + 8, 0, 0, Math.PI * 2); gctx1.fill();
+    gctx1.fillStyle = "#1a5276";
+    gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx - 14, l.ry - 14, 0, 0, Math.PI * 2); gctx1.fill();
+    gctx1.fillStyle = "#0e2f44";
+    gctx1.beginPath(); gctx1.ellipse(l.x, l.y, l.rx - 45, l.ry - 45, 0, 0, Math.PI * 2); gctx1.fill();
   });
-  gctx1.strokeStyle = "#c0392b"; gctx1.lineWidth = 8; gctx1.strokeRect(0, 0, 4400, 3200);
-} bakeGround1();
+
+  gctx1.strokeStyle = "#c0392b";
+  gctx1.lineWidth = 8;
+  gctx1.strokeRect(0, 0, 4400, 3200);
+}
+bakeGround1();
 
 function bakeGround2() {
-  gctx2.fillStyle = "#160704"; gctx2.fillRect(0, 0, 5200, 3800);
-  for (let i = 0; i < 1400; i++) {
-    const gx = Math.random() * (5200 - 60) + 30; const gy = Math.random() * (3800 - 60) + 30; const type = Math.floor(Math.random() * 3); const size = Math.random() * 3.5 + 2;
-    gctx2.fillStyle = type === 0 ? "#c0392b" : (type === 1 ? "#d35400" : "#f39c12"); gctx2.beginPath(); gctx2.arc(gx, gy, size, 0, Math.PI * 2); gctx2.fill();
-  }
-  lavaLakes.forEach(l => {
-    gctx2.fillStyle = "#0a0402"; gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx + 30, l.ry + 30, 0, 0, Math.PI * 2); gctx2.fill();
-    gctx2.fillStyle = "#962d00"; gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx + 10, l.ry + 10, 0, 0, Math.PI * 2); gctx2.fill();
-    gctx2.fillStyle = "#d35400"; gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx - 15, l.ry - 15, 0, 0, Math.PI * 2); gctx2.fill();
-    gctx2.fillStyle = "#f39c12"; gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx - 50, l.ry - 50, 0, 0, Math.PI * 2); gctx2.fill();
-  });
-  gctx2.strokeStyle = "#e74c3c"; gctx2.lineWidth = 10; gctx2.strokeRect(0, 0, 5200, 3800);
-} bakeGround2();
+  gctx2.fillStyle = "#160704";
+  gctx2.fillRect(0, 0, 5200, 3800);
 
+  for (let i = 0; i < 1400; i++) {
+    const gx = Math.random() * (5200 - 60) + 30;
+    const gy = Math.random() * (3800 - 60) + 30;
+    const type = Math.floor(Math.random() * 3);
+    const size = Math.random() * 3.5 + 2;
+    gctx2.fillStyle = type === 0 ? "#c0392b" : (type === 1 ? "#d35400" : "#f39c12");
+    gctx2.beginPath();
+    gctx2.arc(gx, gy, size, 0, Math.PI * 2);
+    gctx2.fill();
+  }
+
+  lavaLakes.forEach(l => {
+    gctx2.fillStyle = "#0a0402";
+    gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx + 30, l.ry + 30, 0, 0, Math.PI * 2); gctx2.fill();
+    gctx2.fillStyle = "#962d00";
+    gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx + 10, l.ry + 10, 0, 0, Math.PI * 2); gctx2.fill();
+    gctx2.fillStyle = "#d35400";
+    gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx - 15, l.ry - 15, 0, 0, Math.PI * 2); gctx2.fill();
+    gctx2.fillStyle = "#f39c12";
+    gctx2.beginPath(); gctx2.ellipse(l.x, l.y, l.rx - 50, l.ry - 50, 0, 0, Math.PI * 2); gctx2.fill();
+  });
+
+  gctx2.strokeStyle = "#e74c3c";
+  gctx2.lineWidth = 10;
+  gctx2.strokeRect(0, 0, 5200, 3800);
+}
+bakeGround2();
+
+// ==========================================
+// SES MOTORU (CPU Yormayan Versiyon)
+// ==========================================
 let audioCtx = null;
 let nightMusicTimer = null;
 let isNightMusicPlaying = false;
@@ -251,7 +329,14 @@ function spawnOre(type) {
   for (let attempts = 0; attempts < 35; attempts++) {
     const x = Math.random() * (WORLD_WIDTH - 300) + 150; const y = Math.random() * (WORLD_HEIGHT - 300) + 150;
     if (isCollidingWithLava(x, y, 45)) continue;
-    ores.push({ type: type, x: x, y: y, size: 24, hp: 100, maxHp: 100, shake: 0 });
+    ores.push({
+      type: type, x: x, y: y, size: 24, hp: 100, maxHp: 100, shake: 0,
+      crystalOffset: Math.random() * Math.PI * 2,
+      points: [
+        { x: -16, y: 8 }, { x: -12, y: -16 }, { x: 4, y: -22 },
+        { x: 18, y: -10 }, { x: 22, y: 10 }, { x: -4, y: 20 }
+      ]
+    });
     break;
   }
 }
@@ -284,7 +369,7 @@ document.getElementById("craft-boots-btn").addEventListener("click", () => { if 
 document.getElementById("craft-sword-btn").addEventListener("click", () => { if (player.iron >= 20 && !player.hasIronSword) { player.iron -= 20; player.hasIronSword = true; TOOLS[0].monsterDmg = 90; TOOLS[0].name = "🗡️ Üst Düzey Demir Kılıç"; SFX.build(); updateUI(); updateCraftingButtons(); } });
 document.getElementById("craft-pick-btn").addEventListener("click", () => { if (player.iron >= 20 && !player.hasIronPick) { player.iron -= 20; player.hasIronPick = true; TOOLS[2].oreDmg = 85; TOOLS[2].name = "⛏️ Üst Düzey Demir Kazma"; SFX.build(); updateUI(); updateCraftingButtons(); } });
 
-// Giriş (Aşama 1 -> Aşama 2 Sistemi)
+// Giriş Cihaz & Harita Seçimi
 let welcomeTriggered = false;
 function triggerWelcome() {
   if (welcomeTriggered) return;
@@ -312,13 +397,11 @@ function cycleTool() {
 }
 toolCycleBtn.addEventListener("click", cycleTool); toolCycleBtn.addEventListener("touchstart", (e) => { e.preventDefault(); cycleTool(); });
 
-// Aşama 1: Cihaz Seçince Aşama 2'ye geç
+// Adım 1'den Adım 2'ye geçiş
 function bindDeviceButton(btnId, dev) {
   const btn = document.getElementById(btnId);
   btn.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    initAudio();
-    currentDevice = dev;
+    e.preventDefault(); initAudio(); currentDevice = dev;
     document.getElementById("step-1-device").classList.add("hidden");
     document.getElementById("step-2-map").classList.remove("hidden");
   });
@@ -331,53 +414,34 @@ document.getElementById("btn-back-device").addEventListener("pointerdown", (e) =
   document.getElementById("step-1-device").classList.remove("hidden");
 });
 
-// Aşama 2: Harita Seçince Oyunu Başlat
-document.getElementById("btn-map-1").addEventListener("pointerdown", (e) => {
-  e.preventDefault();
-  startGame(currentDevice, 1);
-});
-
+document.getElementById("btn-map-1").addEventListener("pointerdown", (e) => { e.preventDefault(); startGame(currentDevice, 1); });
 document.getElementById("btn-map-2").addEventListener("pointerdown", (e) => {
   e.preventDefault();
   const code = prompt("2. Harita (Cehennem) için Promosyon Kodunu giriniz:");
-  if (code === "hşgldn100") {
-    startGame(currentDevice, 2);
-  } else if (code) {
-    alert("Hatalı kod! Bu bölüme geçmek için 1. Haritayı bitirip kodu öğrenmelisiniz.");
-  }
+  if (code === "hşgldn100") startGame(currentDevice, 2);
+  else if (code) alert("Hatalı kod! Bu bölüme geçmek için 1. Haritayı bitirip şifreyi öğrenmelisiniz.");
 });
 
 function startGame(device, mapLevel) {
   if (gameRunning) return;
   initAudio();
-  
   const inputName = playerNameInput.value.trim();
-  player.name = inputName.length > 0 ? inputName : "Savaşçı";
-  player.gender = selectedGender;
+  player.name = inputName.length > 0 ? inputName : "Savaşçı"; player.gender = selectedGender;
 
-  deviceModal.style.display = "none";
-  deviceModal.classList.add("hidden");
-  gameContainer.style.display = "block";
-  gameContainer.classList.remove("hidden");
-
+  deviceModal.style.display = "none"; deviceModal.classList.add("hidden");
+  gameContainer.style.display = "block"; gameContainer.classList.remove("hidden");
   resizeCanvas();
 
   if (device === "android" || device === "ios") {
     mobileOverlay.classList.remove("hidden"); pcControls.classList.add("hidden"); setupMobileControls();
     if (device === "ios") { document.body.classList.add("ios-fullscreen"); window.scrollTo(0, 1); } else { toggleFullScreen(); }
-  } else {
-    mobileOverlay.classList.add("hidden"); pcControls.classList.remove("hidden");
-  }
+  } else { mobileOverlay.classList.add("hidden"); pcControls.classList.remove("hidden"); }
 
-  resetGame(true); // 1. harita ortamı gibi sıfırla
-
+  resetGame(true);
   gameRunning = true;
 
-  if (mapLevel === 2) {
-    transitionToHellMap();
-  } else {
-    triggerAchievementByDay(1);
-  }
+  if (mapLevel === 2) transitionToHellMap();
+  else triggerAchievementByDay(1);
 
   requestAnimationFrame(gameLoop);
 }
@@ -411,11 +475,11 @@ function setupMobileControls() {
   window.addEventListener("touchmove", (e) => { for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === touchId) { updateTouch(e.changedTouches[i]); break; } } }, { passive: false });
   function endJoystick(e) { for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === touchId) { touchId = null; knob.style.transform = `translate(0px, 0px)`; joystickVector = { x: 0, y: 0 }; break; } } }
   window.addEventListener("touchend", endJoystick); window.addEventListener("touchcancel", endJoystick);
-
   document.getElementById("btn-attack").addEventListener("touchstart", (e) => { e.preventDefault(); initAudio(); attackOrGather(); });
   document.getElementById("btn-build").addEventListener("touchstart", (e) => { e.preventDefault(); initAudio(); buildOrRepairBase(); });
 }
 
+// SALDIRI VE OYUN MANTIĞI
 function attackOrGather() {
   if (player.isAttacking) return;
   player.isAttacking = true; player.attackTimer = 12;
@@ -485,7 +549,6 @@ function attackOrGather() {
     let dx = m.x - player.x; let dy = m.y - player.y; let dist = Math.hypot(dx, dy); let inFront = (player.facing === 1 && dx > -15) || (player.facing === -1 && dx < 15);
     if (dist < reach + 14 && inFront) { m.health -= tool.monsterDmg; m.x += player.facing * 38; m.isChasing = true; hit = true; SFX.hitMonster(); }
   });
-
   if (!hit) SFX.slash(); updateUI();
 }
 
@@ -506,17 +569,10 @@ function spawnNightMonsters() {
     let monsterType = "wolf"; let count = 8 + dayCount * 3; let baseSpeed = 2.4; let baseHp = 70;
     if (dayCount >= 4 && dayCount <= 6) { monsterType = "bear"; count = 6 + dayCount * 2; baseSpeed = 1.95; baseHp = 135; }
     else if (dayCount >= 7) { monsterType = "demon"; count = 10 + dayCount * 3; baseSpeed = 2.65; baseHp = 115; }
-
-    for (let i = 0; i < count; i++) {
-      let spawnAngle = Math.random() * Math.PI * 2; let spawnDist = 650 + Math.random() * 350;
-      monsters.push({ type: monsterType, x: player.x + Math.cos(spawnAngle) * spawnDist, y: player.y + Math.sin(spawnAngle) * spawnDist, size: monsterType === "bear" ? 28 : (monsterType === "demon" ? 24 : 20), speed: baseSpeed + (dayCount * 0.08), health: baseHp + (dayCount * 10), maxHealth: baseHp + (dayCount * 10), animOffset: Math.random() * 10, isChasing: false, wanderAngle: Math.random() * Math.PI * 2, wanderTimer: 0 });
-    }
+    for (let i = 0; i < count; i++) { let spawnAngle = Math.random() * Math.PI * 2; let spawnDist = 650 + Math.random() * 350; monsters.push({ type: monsterType, x: player.x + Math.cos(spawnAngle) * spawnDist, y: player.y + Math.sin(spawnAngle) * spawnDist, size: monsterType === "bear" ? 28 : (monsterType === "demon" ? 24 : 20), speed: baseSpeed + (dayCount * 0.08), health: baseHp + (dayCount * 10), maxHealth: baseHp + (dayCount * 10), animOffset: Math.random() * 10, isChasing: false, wanderAngle: Math.random() * Math.PI * 2, wanderTimer: 0 }); }
   } else if (currentMap === 2) {
     let isSnakeDay = dayCount >= 6 && dayCount <= 8; let count = isSnakeDay ? (18 + dayCount * 2) : (10 + Math.floor(dayCount * 1.5));
-    for (let i = 0; i < count; i++) {
-      let spawnAngle = Math.random() * Math.PI * 2; let spawnDist = 680 + Math.random() * 380; let mType = isSnakeDay ? "snake" : "hellhound";
-      monsters.push({ type: mType, x: player.x + Math.cos(spawnAngle) * spawnDist, y: player.y + Math.sin(spawnAngle) * spawnDist, size: mType === "snake" ? 18 : 25, speed: mType === "snake" ? 3.1 : 2.7, health: mType === "snake" ? 45 : 140, maxHealth: mType === "snake" ? 45 : 140, animOffset: Math.random() * 10, isChasing: true, wanderAngle: Math.random() * Math.PI * 2, wanderTimer: 0 });
-    }
+    for (let i = 0; i < count; i++) { let spawnAngle = Math.random() * Math.PI * 2; let spawnDist = 680 + Math.random() * 380; let mType = isSnakeDay ? "snake" : "hellhound"; monsters.push({ type: mType, x: player.x + Math.cos(spawnAngle) * spawnDist, y: player.y + Math.sin(spawnAngle) * spawnDist, size: mType === "snake" ? 18 : 25, speed: mType === "snake" ? 3.1 : 2.7, health: mType === "snake" ? 45 : 140, maxHealth: mType === "snake" ? 45 : 140, animOffset: Math.random() * 10, isChasing: true, wanderAngle: Math.random() * Math.PI * 2, wanderTimer: 0 }); }
   }
 }
 
@@ -661,7 +717,6 @@ function checkMeatPickup() {
 // Hatıra Defteri
 function openGuestbook() {
   guestbookModal.classList.remove("hidden");
-  
   if (currentMap === 1) {
     document.getElementById("victory-header-text").innerText = "🏆 1. BÖLÜMÜ TAMAMLADIN! 🏆";
     document.getElementById("victory-desc-text").innerText = "Zaman kapısını kırdın ama her şey bitmedi. Bölüm 2: Cehennem haritasına geçmek için kodunu not al!";
@@ -671,42 +726,17 @@ function openGuestbook() {
     document.getElementById("victory-desc-text").innerText = "Kızınla birlikte bu cehennemden sağ çıkmayı başardınız. Oyun geliştiricisine yorumlarını hatıra defterine bırakabilirsin.";
     document.getElementById("promo-code-box").classList.add("hidden");
   }
-
   renderGuestbookComments();
 }
 
-function loadGuestbookComments() {
-  const saved = localStorage.getItem("survival_guestbook_comments");
-  if (saved) return JSON.parse(saved);
-  return [{ author: "Hüseyin (Geliştirici)", message: "Oyunu sonuna kadar oynadığın için tebrikler! Tavsiyelerini bekliyorum!" }];
-}
-
-function renderGuestbookComments() {
-  const comments = loadGuestbookComments();
-  commentsContainer.innerHTML = "";
-  comments.forEach(c => {
-    const card = document.createElement("div"); card.className = "comment-card";
-    card.innerHTML = `<div class="comment-card-author">👤 ${escapeHtml(c.author)}:</div><div class="comment-card-msg">${escapeHtml(c.message)}</div>`;
-    commentsContainer.appendChild(card);
-  });
-}
-
-btnSubmitComment.addEventListener("click", () => {
-  const author = commentAuthor.value.trim(); const msg = commentMessage.value.trim();
-  if (author.length === 0 || msg.length === 0) { alert("Lütfen adınızı ve mesajınızı yazın!"); return; }
-  const comments = loadGuestbookComments(); comments.unshift({ author: author, message: msg });
-  localStorage.setItem("survival_guestbook_comments", JSON.stringify(comments)); commentMessage.value = "";
-  renderGuestbookComments(); alert("Mesajınız kaydedildi!");
-});
-
-btnPlayAgain.addEventListener("click", () => {
-  window.location.reload(); // Oyunu tamamen yeniden başlatarak ana ekrana döner
-});
-
+function loadGuestbookComments() { const saved = localStorage.getItem("survival_guestbook_comments"); if (saved) return JSON.parse(saved); return [{ author: "Hüseyin (Geliştirici)", message: "Oyunu sonuna kadar oynadığın için tebrikler! Tavsiyelerini bekliyorum!" }]; }
+function renderGuestbookComments() { const comments = loadGuestbookComments(); commentsContainer.innerHTML = ""; comments.forEach(c => { const card = document.createElement("div"); card.className = "comment-card"; card.innerHTML = `<div class="comment-card-author">👤 ${escapeHtml(c.author)}:</div><div class="comment-card-msg">${escapeHtml(c.message)}</div>`; commentsContainer.appendChild(card); }); }
+btnSubmitComment.addEventListener("click", () => { const author = commentAuthor.value.trim(); const msg = commentMessage.value.trim(); if (author.length === 0 || msg.length === 0) { alert("Lütfen adınızı ve mesajınızı yazın!"); return; } const comments = loadGuestbookComments(); comments.unshift({ author: author, message: msg }); localStorage.setItem("survival_guestbook_comments", JSON.stringify(comments)); commentMessage.value = ""; renderGuestbookComments(); alert("Mesajınız kaydedildi!"); });
+btnPlayAgain.addEventListener("click", () => { window.location.reload(); });
 function escapeHtml(text) { const div = document.createElement("div"); div.innerText = text; return div.innerHTML; }
 
 // ==========================================
-// ÇİZİMLER
+// ÇİZİMLER (OPTİMİZE EDİLMİŞ VERSİYONLAR)
 // ==========================================
 function drawTree(t) {
   let shakeOffset = 0; if (t.shake > 0) { shakeOffset = (Math.random() - 0.5) * t.shake; t.shake--; }
@@ -735,10 +765,53 @@ function drawRock(r) {
   ctx.restore();
 }
 
+// 2. Harita Özelleştirilmiş Yeni 3D Maden Çizimi (Gölge bulanıklığı yok, çok hafif, şık)
+function drawOre(o) {
+  let shakeOffset = (Math.random() - 0.5) * o.shake; if (o.shake > 0) o.shake--;
+  const px = o.x + shakeOffset; const py = o.y;
+
+  if (o.hp < o.maxHp) { ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(px - 18, py - 35, 36, 5); ctx.fillStyle = "#f39c12"; ctx.fillRect(px - 18, py - 35, (36 * o.hp) / o.maxHp, 5); }
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+  ctx.beginPath(); ctx.ellipse(px, py + 14, 24, 8, 0, 0, Math.PI * 2); ctx.fill();
+
+  ctx.save(); ctx.translate(px, py);
+
+  ctx.fillStyle = "#2c2c2c";
+  ctx.beginPath(); ctx.moveTo(o.points[0].x, o.points[0].y);
+  for (let i = 1; i < o.points.length; i++) { ctx.lineTo(o.points[i].x, o.points[i].y); } ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle = "#4a4a4a";
+  ctx.beginPath(); ctx.moveTo(o.points[1].x, o.points[1].y); ctx.lineTo(o.points[2].x, o.points[2].y); ctx.lineTo(0, 0); ctx.fill();
+
+  let primaryColor, glowColor;
+  if (o.type === "copper") { primaryColor = "#c0392b"; glowColor = "#e67e22"; }
+  else if (o.type === "silver") { primaryColor = "#95a5a6"; glowColor = "#ecf0f1"; }
+  else if (o.type === "iron") { primaryColor = "#5d6d7e"; glowColor = "#85c1e9"; }
+  else if (o.type === "gold") { primaryColor = "#f39c12"; glowColor = "#f1c40f"; }
+
+  const pulse = Math.sin(Date.now() * 0.005 + o.crystalOffset) * 2;
+
+  ctx.fillStyle = primaryColor;
+  ctx.beginPath(); ctx.moveTo(-10, -5); ctx.lineTo(-2, -15); ctx.lineTo(8, -8); ctx.lineTo(0, 2); ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle = glowColor;
+  ctx.beginPath(); ctx.moveTo(2, -12); ctx.lineTo(12, -4); ctx.lineTo(6, 6); ctx.lineTo(-2, 0); ctx.closePath(); ctx.fill();
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+  ctx.beginPath(); ctx.arc(-2, -8, 2 + pulse*0.5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6, -2, 1.5 + pulse*0.5, 0, Math.PI*2); ctx.fill();
+
+  ctx.restore();
+}
+
 function drawPlayer(x, y) {
   ctx.save(); ctx.translate(x, y); const bob = Math.sin(player.walkCycle) * 2;
   if (player.isPoisoned) { ctx.strokeStyle = "#2ecc71"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, bob, 26, 0, Math.PI * 2); ctx.stroke(); }
-  if (player.isBlessed) { ctx.strokeStyle = "#f1c40f"; ctx.lineWidth = 3.5; ctx.shadowColor = "#f1c40f"; ctx.shadowBlur = 12; ctx.beginPath(); ctx.arc(0, bob, 28, 0, Math.PI * 2); ctx.stroke(); ctx.shadowBlur = 0; }
+  if (player.isBlessed) {
+    ctx.fillStyle = "rgba(241, 196, 15, 0.25)"; ctx.beginPath(); ctx.arc(0, bob, 32, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#f1c40f"; ctx.lineWidth = 3.5; ctx.beginPath(); ctx.arc(0, bob, 28, 0, Math.PI * 2); ctx.stroke();
+  }
   ctx.fillStyle = "#ffffff"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center"; ctx.fillText(player.name, 0, -36 + bob);
   ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(-22, -31 + bob, 44, 5); ctx.fillStyle = player.isPoisoned ? "#2ecc71" : "#e74c3c"; ctx.fillRect(-22, -31 + bob, (44 * player.health) / player.maxHealth, 5);
   if (player.facing === -1) ctx.scale(-1, 1);
@@ -759,7 +832,8 @@ function drawImanStone(st) {
   let shakeOffset = (Math.random() - 0.5) * st.shake; if (st.shake > 0) st.shake--; const px = st.x + shakeOffset; const py = st.y;
   ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(px - 55, py - 95, 110, 12); ctx.fillStyle = "#f1c40f"; ctx.fillRect(px - 55, py - 95, (110 * st.hp) / st.maxHp, 12);
   ctx.fillStyle = "#fff"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center"; ctx.fillText(`KUTSAL İMAN TAŞI (${st.hp}/${st.maxHp})`, px, py - 105);
-  ctx.shadowColor = "#f1c40f"; ctx.shadowBlur = 24; ctx.fillStyle = "#f39c12"; ctx.beginPath(); ctx.moveTo(px, py - 80); ctx.lineTo(px + 40, py + 25); ctx.lineTo(px - 40, py + 25); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0;
+  ctx.fillStyle = "rgba(243, 156, 18, 0.25)"; ctx.beginPath(); ctx.moveTo(px, py - 90); ctx.lineTo(px + 50, py + 30); ctx.lineTo(px - 50, py + 30); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#f39c12"; ctx.beginPath(); ctx.moveTo(px, py - 70); ctx.lineTo(px + 35, py + 20); ctx.lineTo(px - 35, py + 20); ctx.closePath(); ctx.fill();
 }
 
 function drawHellBoss(b) {
@@ -794,19 +868,10 @@ function drawMonster(m) {
 
 function drawHellGate(g) {
   ctx.save(); ctx.translate(g.x, g.y); const pulse = Math.sin(Date.now() * 0.005) * 8;
-  ctx.shadowColor = "#e74c3c"; ctx.shadowBlur = 25; ctx.fillStyle = "#c0392b"; ctx.beginPath(); ctx.arc(0, 0, g.size + pulse, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "rgba(231, 76, 60, 0.35)"; ctx.beginPath(); ctx.arc(0, 0, g.size + pulse + 15, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#c0392b"; ctx.beginPath(); ctx.arc(0, 0, g.size + pulse, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = "#f39c12"; ctx.beginPath(); ctx.arc(0, 0, (g.size - 15) + pulse, 0, Math.PI * 2); ctx.fill();
-  ctx.shadowBlur = 0; ctx.fillStyle = "#fff"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center"; ctx.fillText("CEHENNEM GEÇİDİ ➔", 0, -g.size - 15);
-  ctx.restore();
-}
-
-function drawOre(o) {
-  let shakeOffset = (Math.random() - 0.5) * o.shake; if (o.shake > 0) o.shake--; const px = o.x + shakeOffset; const py = o.y;
-  if (o.hp < o.maxHp) { ctx.fillStyle = "rgba(0,0,0,0.75)"; ctx.fillRect(px - 18, py - 30, 36, 5); ctx.fillStyle = "#f39c12"; ctx.fillRect(px - 18, py - 30, (36 * o.hp) / o.maxHp, 5); }
-  ctx.save(); ctx.translate(px, py);
-  ctx.fillStyle = "#2c1e19"; ctx.beginPath(); ctx.arc(0, 0, o.size, 0, Math.PI * 2); ctx.fill();
-  let oreColor = "#d35400"; if (o.type === "silver") oreColor = "#bdc3c7"; if (o.type === "iron") oreColor = "#7f8c8d"; if (o.type === "gold") oreColor = "#f1c40f";
-  ctx.fillStyle = oreColor; ctx.beginPath(); ctx.arc(-4, -4, 6, 0, Math.PI * 2); ctx.arc(5, 3, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center"; ctx.fillText("CEHENNEM GEÇİDİ ➔", 0, -g.size - 25);
   ctx.restore();
 }
 
